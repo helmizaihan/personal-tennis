@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tennis Singles Score Tracker</title>
+  <style>
+    :root{--bg:#f6f7f9;--card:#fff;--text:#0f172a;--muted:#6b7280;--accent:#2563eb;--accent-2:#1e40af;--border:#e5e7eb;--good:#16a34a;--bad:#dc2626}
+    body{margin:0;font:16px/1.5 system-ui;background:var(--bg);color:var(--text)}
+    .container{max-width:1100px;margin:32px auto;padding:0 16px}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 24px rgba(2,6,23,.05)}
+    .section{padding:18px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    label{font-size:.8rem;color:var(--muted)}
+    input,select,button{font:inherit;padding:10px 12px;border:1px solid var(--border);border-radius:10px}
+    .btn{background:var(--accent);color:#fff;border:none;cursor:pointer;padding:10px 14px;border-radius:12px}
+    .set-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🎾 Tennis Singles Score Tracker</h1>
+    <div class="toolbar no-print">
+      <button class="btn" id="printBtn">Save as PDF</button>
+    </div>
+  </header>
+
+  <div class="card section">
+    <h2>Event Info</h2>
+    <div class="row">
+      <div class="field">
+        <label for="eventDate">Date</label>
+        <input id="eventDate" type="date"/>
+      </div>
+      <div class="field">
+        <label for="location">Location</label>
+        <input id="location" type="text" placeholder="Location"/>
+      </div>
+    </div>
+  </div>
+
+  <div class="card section">
+    <h2>Players</h2>
+    <div class="row">
+      <input id="newPlayer" type="text" placeholder="Player name"/>
+      <button class="btn" id="addPlayerBtn">Add</button>
+    </div>
+    <div id="playersChips" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"></div>
+  </div>
+
+  <div class="card section">
+    <h2>Record Match</h2>
+    <div class="row">
+      <label>Best of:
+        <select id="bestOf">
+          <option value="1">Single Set</option>
+          <option value="3" selected>3 sets</option>
+          <option value="5">5 sets</option>
+        </select>
+      </label>
+      <label>Player A:
+        <select id="p1"></select>
+      </label>
+      <label>Player B:
+        <select id="p2"></select>
+      </label>
+    </div>
+    <div id="setsArea" class="set-grid" style="margin-top:10px"></div>
+    <button class="btn" id="addMatchBtn" style="margin-top:12px">Add Match</button>
+  </div>
+
+  <div class="card section">
+    <h2>Matches</h2>
+    <div id="matchList"></div>
+  </div>
+
+  <div class="card section">
+    <h2>Final Ranking</h2>
+    <table id="rankingTable">
+      <thead><tr><th>#</th><th>Player</th><th>M</th><th>W</th><th>L</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+<script>
+let players=[];let matches=[];const $=s=>document.querySelector(s);
+function populate(){const opts='<option value="">Select</option>'+players.map(p=>`<option>${p}</option>`).join('');$('#p1').innerHTML=opts;$('#p2').innerHTML=opts;$('#playersChips').innerHTML=players.map(p=>`<span class="btn" data-name="${p}">${p}</span>`).join('')}
+function renderSets(){const best=+$('#bestOf').value;const area=$('#setsArea');area.innerHTML='';for(let i=1;i<=best;i++){area.innerHTML+=`<label>Set ${i} A:<input id="s${i}a" type="number" min="0"></label><label>Set ${i} B:<input id="s${i}b" type="number" min="0"></label>`}}
+function addPlayer(){const n=$('#newPlayer').value.trim();if(n&&!players.includes(n)){players.push(n);populate()}$('#newPlayer').value=''}
+function addMatch(){const p1=$('#p1').value,p2=$('#p2').value;if(!p1||!p2)return alert('Select players');const best=+$('#bestOf').value;const sets=[];for(let i=1;i<=best;i++){const a=+$('#s'+i+'a').value||0,b=+$('#s'+i+'b').value||0;if(a===0&&b===0)continue;sets.push({a,b})}if(!sets.length)return alert('Enter scores');matches.push({date:$('#eventDate').value,p1,p2,sets});renderMatches();computeRanking()}
+function renderMatches(){$('#matchList').innerHTML=matches.map(m=>`<div>${m.date}: ${m.p1} vs ${m.p2} (${m.sets.map(s=>`${s.a}-${s.b}`).join(', ')})</div>`).join('')}
+function computeRanking(){const stats={};for(const m of matches){let aw=0,bw=0;for(const s of m.sets){if(s.a>s.b)aw++;else if(s.b>s.a)bw++}if(!stats[m.p1])stats[m.p1]={M:0,W:0,L:0};if(!stats[m.p2])stats[m.p2]={M:0,W:0,L:0};stats[m.p1].M++;stats[m.p2].M++;if(aw>bw){stats[m.p1].W++;stats[m.p2].L++;}else{stats[m.p2].W++;stats[m.p1].L++;}}const rows=Object.entries(stats).sort((a,b)=>b[1].W-a[1].W).map(([p,s],i)=>`<tr><td>${i+1}</td><td>${p}</td><td>${s.M}</td><td>${s.W}</td><td>${s.L}</td></tr>`).join('');$('#rankingTable tbody').innerHTML=rows}
+$('#addPlayerBtn').addEventListener('click',addPlayer);$('#bestOf').addEventListener('change',renderSets);$('#addMatchBtn').addEventListener('click',addMatch);window.onload=()=>{populate();renderSets()};
+</script>
+</body>
+</html>
