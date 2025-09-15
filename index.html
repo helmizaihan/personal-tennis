@@ -8,24 +8,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'] } } } };
-  </script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui']}}}};</script>
   <style>
-    :root{
-      --bg: #f7fafc; --card:#ffffff; --text:#111827; --muted:#6b7280; --border:#e5e7eb; --brand:#2563eb; --brand-600:#2563eb; --brand-700:#1d4ed8; --radius: 14px;
-    }
-    html, body { height: 100%; font-family: 'Inter', ui-sans-serif, system-ui; background: var(--bg); color: var(--text); }
-    .card { background: var(--card); border-radius: var(--radius); box-shadow: 0 10px 30px rgba(0,0,0,.05); border: 1px solid var(--border); }
-    .btn { display:inline-flex; align-items:center; gap:.5rem; border-radius: 12px; border:1px solid var(--border); background: var(--card); padding:.5rem .75rem; font-size:.9rem; }
-    .btn:hover{ background: rgba(0,0,0,.02); }
-    .btn-primary { background: var(--brand-600); color:#fff; border-color: transparent; }
-    .btn-primary:hover{ background: var(--brand-700); }
-    .field { width:100%; border-radius: 12px; border:1px solid var(--border); padding:.5rem .75rem; }
+    :root{--bg:#f7fafc;--card:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--brand:#2563eb;--brand-700:#1d4ed8;--r:14px}
+    html,body{height:100%;font-family:'Inter',ui-sans-serif,system-ui;background:var(--bg);color:var(--text)}
+    .card{background:var(--card);border-radius:var(--r);box-shadow:0 10px 30px rgba(0,0,0,.05);border:1px solid var(--border)}
+    .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:12px;border:1px solid var(--border);background:var(--card);padding:.5rem .75rem;font-size:.9rem}
+    .btn:hover{background:rgba(0,0,0,.02)}
+    .btn-primary{background:var(--brand);color:#fff;border-color:transparent}
+    .btn-primary:hover{background:var(--brand-700)}
+    .field{width:100%;border-radius:12px;border:1px solid var(--border);padding:.5rem .75rem}
   </style>
 </head>
-<body class="bg-gray-50 text-gray-900">
-  <!-- Header -->
+<body>
   <header class="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/70 bg-white/90 border-b border-gray-200">
     <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -36,15 +31,14 @@
         </div>
       </div>
       <div class="flex flex-wrap gap-2 items-center">
-        <button id="btnExport" class="btn" title="Download JSON">Export</button>
-        <label class="btn cursor-pointer" title="Import JSON"><input id="fileImport" type="file" accept=".json" class="hidden"/>Import</label>
-        <button id="btnPDF" class="btn" title="Print / Save as PDF">Save PDF</button>
+        <button id="btnExport" class="btn">Export</button>
+        <label class="btn cursor-pointer"><input id="fileImport" type="file" accept=".json" class="hidden"/>Import</label>
+        <button id="btnPDF" class="btn">Save PDF</button>
       </div>
     </div>
   </header>
 
   <main class="max-w-6xl mx-auto px-4 py-6 grid lg:grid-cols-3 gap-6">
-    <!-- Left: Opponents & Event -->
     <aside class="lg:col-span-1 space-y-6">
       <section class="card p-5">
         <h2 class="text-lg font-semibold mb-3">Opponents</h2>
@@ -60,11 +54,11 @@
         <h2 class="text-lg font-semibold mb-3">Event Info</h2>
         <div class="space-y-3">
           <div>
-            <label class="text-xs font-medium text-gray-600">Event / League Name</label>
+            <label class="text-xs text-gray-600">Event / League Name</label>
             <input id="eventName" class="field" placeholder="e.g., Friday Night Singles" />
           </div>
           <div>
-            <label class="text-xs font-medium text-gray-600">Venue</label>
+            <label class="text-xs text-gray-600">Venue</label>
             <input id="eventVenue" class="field" placeholder="e.g., Kiara Park Courts" />
           </div>
           <div class="flex items-center gap-2">
@@ -75,33 +69,38 @@
       </section>
 
       <section class="card p-5">
-        <h2 class="text-lg font-semibold mb-3">League Table</h2>
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead class="text-left text-gray-600 border-b">
-              <tr><th class="py-2 pr-3">Player</th><th class="py-2 pr-3">P</th><th class="py-2 pr-3">W</th><th class="py-2 pr-3">L</th><th class="py-2 pr-3">Pts</th></tr>
-            </thead>
-            <tbody id="leagueBody" class="divide-y"></tbody>
-          </table>
+        <h2 class="text-lg font-semibold mb-3">Statistics</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div class="p-3 rounded-lg border border-gray-200">
+            <div class="text-xs text-gray-600">Win–Loss</div>
+            <div id="statWL" class="text-xl font-semibold">0–0</div>
+          </div>
+          <div class="p-3 rounded-lg border border-gray-200">
+            <div class="text-xs text-gray-600">Winning %</div>
+            <div id="statWinPct" class="text-xl font-semibold">0%</div>
+          </div>
+          <div class="p-3 rounded-lg border border-gray-200">
+            <div class="text-xs text-gray-600">Matches</div>
+            <div id="statTotal" class="text-xl font-semibold">0</div>
+          </div>
         </div>
       </section>
     </aside>
 
-    <!-- Right: Match Entry & History -->
     <section class="lg:col-span-2 space-y-6">
       <section class="card p-5">
         <h2 class="text-lg font-semibold mb-4">Add Match</h2>
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <label class="text-xs font-medium text-gray-600">Date</label>
+            <label class="text-xs text-gray-600">Date</label>
             <input id="mDate" type="date" class="field" />
           </div>
           <div>
-            <label class="text-xs font-medium text-gray-600">Opponent</label>
+            <label class="text-xs text-gray-600">Opponent</label>
             <select id="mOpponent" class="field"></select>
           </div>
           <div>
-            <label class="text-xs font-medium text-gray-600">Format</label>
+            <label class="text-xs text-gray-600">Format</label>
             <select id="mFormat" class="field">
               <option value="1">Single Set</option>
               <option value="3">Best of 3</option>
@@ -109,30 +108,53 @@
             </select>
           </div>
           <div>
-            <label class="text-xs font-medium text-gray-600">Result</label>
-            <select id="mResult" class="field">
-              <option value="W">Win</option>
-              <option value="L">Loss</option>
-            </select>
+            <label class="text-xs text-gray-600">Result</label>
+            <select id="mResult" class="field"><option value="W">Win</option><option value="L">Loss</option></select>
           </div>
           <div>
-            <label class="text-xs font-medium text-gray-600">Score</label>
+            <label class="text-xs text-gray-600">Score</label>
             <input id="mScore" class="field" placeholder="e.g., 6-4; 3-6; 10-8" />
           </div>
           <div>
-            <label class="text-xs font-medium text-gray-600">Surface</label>
-            <select id="mSurface" class="field">
-              <option>Hard</option><option>Clay</option><option>Grass</option><option>Carpet</option>
-            </select>
+            <label class="text-xs text-gray-600">Surface</label>
+            <select id="mSurface" class="field"><option>Hard</option><option>Clay</option><option>Grass</option><option>Carpet</option></select>
           </div>
           <div class="md:col-span-2 lg:col-span-3">
-            <label class="text-xs font-medium text-gray-600">Notes</label>
+            <label class="text-xs text-gray-600">Notes</label>
             <input id="mNotes" class="field" placeholder="e.g., wind, cramps, strings, strategy" />
           </div>
         </div>
         <div class="mt-4 flex gap-2">
           <button id="addMatch" class="btn-primary px-4 rounded-xl">Add Match</button>
           <span id="savedMsg" class="text-sm text-green-700 hidden">Saved</span>
+        </div>
+      </section>
+
+      <section class="card p-5">
+        <h2 class="text-lg font-semibold mb-4">Breakdowns</h2>
+        <div class="grid lg:grid-cols-2 gap-4">
+          <div>
+            <h3 class="font-semibold mb-2">By Month</h3>
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-sm">
+                <thead class="text-left text-gray-600 border-b">
+                  <tr><th class="py-2 pr-3">Month</th><th class="py-2 pr-3">W</th><th class="py-2 pr-3">L</th><th class="py-2 pr-3">Win %</th><th class="py-2 pr-3">Matches</th></tr>
+                </thead>
+                <tbody id="monthlyBody" class="divide-y"></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h3 class="font-semibold mb-2">By Surface</h3>
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-sm">
+                <thead class="text-left text-gray-600 border-b">
+                  <tr><th class="py-2 pr-3">Surface</th><th class="py-2 pr-3">W</th><th class="py-2 pr-3">L</th><th class="py-2 pr-3">Win %</th><th class="py-2 pr-3">Matches</th></tr>
+                </thead>
+                <tbody id="surfaceBody" class="divide-y"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -171,59 +193,54 @@
   <footer class="text-center text-xs text-gray-500 py-6">Data stays in your browser • Print to PDF for sharing</footer>
 
   <script>
-  // ---------- Storage ----------
-  const LS_KEY = 'helmi_tennis_v1';
-  const defaultState = { eventName:'', eventVenue:'', players:[], matches:[] };
-  let state = load();
-  function load(){ try { return JSON.parse(localStorage.getItem(LS_KEY)) || structuredClone(defaultState);} catch { return structuredClone(defaultState);} }
-  function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+  // Storage
+  const LS_KEY='helmi_tennis_stats_v1';
+  const defaultState={eventName:'',eventVenue:'',players:[],matches:[]};
+  let state=load();
+  function load(){try{return JSON.parse(localStorage.getItem(LS_KEY))||structuredClone(defaultState);}catch{return structuredClone(defaultState)}}
+  function save(){localStorage.setItem(LS_KEY,JSON.stringify(state));}
 
-  // ---------- Elements ----------
-  const el = (id)=>document.getElementById(id);
-  const playerInput = el('playerInput');
-  const addPlayerBtn = el('addPlayer');
-  const playerList = el('playerList');
-  const mDate = el('mDate');
-  const mOpponent = el('mOpponent');
-  const mFormat = el('mFormat');
-  const mResult = el('mResult');
-  const mScore = el('mScore');
-  const mSurface = el('mSurface');
-  const mNotes = el('mNotes');
-  const addMatchBtn = el('addMatch');
-  const matchBody = el('matchBody');
-  const matchCount = el('matchCount');
-  const eventName = el('eventName');
-  const eventVenue = el('eventVenue');
-  const saveEvent = el('saveEvent');
-  const eventSaved = el('eventSaved');
+  // Elements
+  const el=(id)=>document.getElementById(id);
+  const playerInput=el('playerInput');
+  const addPlayerBtn=el('addPlayer');
+  const playerList=el('playerList');
+  const mDate=el('mDate');
+  const mOpponent=el('mOpponent');
+  const mFormat=el('mFormat');
+  const mResult=el('mResult');
+  const mScore=el('mScore');
+  const mSurface=el('mSurface');
+  const mNotes=el('mNotes');
+  const addMatchBtn=el('addMatch');
+  const matchBody=el('matchBody');
+  const matchCount=el('matchCount');
+  const eventName=el('eventName');
+  const eventVenue=el('eventVenue');
+  const saveEvent=el('saveEvent');
+  const eventSaved=el('eventSaved');
 
   function init(){
-    // hydrate
-    eventName.value = state.eventName || '';
-    eventVenue.value = state.eventVenue || '';
-    mDate.value = new Date().toISOString().slice(0,10);
+    eventName.value=state.eventName||'';
+    eventVenue.value=state.eventVenue||'';
+    mDate.value=new Date().toISOString().slice(0,10);
     renderPlayers();
+    renderStats();
+    renderBreakdowns();
     renderMatches();
     renderNotes();
-    renderLeague();
   }
 
-  // ---------- Opponents ----------
+  // Opponents
   function renderPlayers(){
-    playerList.innerHTML = '';
-    const names = [...state.players].sort((a,b)=>a.localeCompare(b));
-    // build opponent dropdown
-    const prev = mOpponent.value;
-    mOpponent.innerHTML = '';
+    playerList.innerHTML='';
+    const names=[...state.players].sort((a,b)=>a.localeCompare(b));
+    const prev=mOpponent.value; mOpponent.innerHTML='';
     for(const n of names){ mOpponent.append(new Option(n,n)); }
-    if(prev) mOpponent.value = prev;
-
+    if(prev) mOpponent.value=prev;
     for(const n of names){
-      const li = document.createElement('li');
-      li.className = 'flex items-center justify-between rounded-lg px-3 py-2 hover:bg-gray-50';
-      li.innerHTML = `
-        <button class="text-left flex-1" data-set-opp="${escapeHtml(n)}">${escapeHtml(n)}</button>
+      const li=document.createElement('li'); li.className='flex items-center justify-between rounded-lg px-3 py-2 hover:bg-gray-50';
+      li.innerHTML=`<button class="text-left flex-1" data-set-opp="${escapeHtml(n)}">${escapeHtml(n)}</button>
         <div class="flex gap-2">
           <button class="btn text-xs" data-rename="${escapeHtml(n)}">Rename</button>
           <button class="btn text-xs" data-remove="${escapeHtml(n)}">Remove</button>
@@ -231,163 +248,71 @@
       playerList.appendChild(li);
     }
   }
+  addPlayerBtn.addEventListener('click',()=>{ const name=(playerInput.value||'').trim(); if(!name) return; if(!state.players.includes(name)) state.players.push(name); playerInput.value=''; save(); renderPlayers(); });
+  playerList.addEventListener('click',(e)=>{ const btn=e.target.closest('button'); if(!btn) return; if(btn.dataset.setOpp){ mOpponent.value=btn.dataset.setOpp; return; } if(btn.dataset.rename){ const old=btn.dataset.rename; const neo=prompt('Rename opponent',old); if(neo&&neo.trim()){ state.players=state.players.map(p=>p===old?neo.trim():p); for(const m of state.matches){ if(m.opponent===old) m.opponent=neo.trim(); } save(); renderPlayers(); renderMatches(); renderStats(); renderBreakdowns(); } } if(btn.dataset.remove){ const name=btn.dataset.remove; state.players=state.players.filter(p=>p!==name); save(); renderPlayers(); }});
 
-  addPlayerBtn.addEventListener('click', ()=>{
-    const name = (playerInput.value||'').trim(); if(!name) return;
-    if(!state.players.includes(name)) state.players.push(name);
-    playerInput.value=''; save(); renderPlayers();
-  });
+  // Event
+  saveEvent.addEventListener('click',()=>{ state.eventName=eventName.value.trim(); state.eventVenue=eventVenue.value.trim(); save(); eventSaved.classList.remove('hidden'); setTimeout(()=>eventSaved.classList.add('hidden'),1200); });
 
-  playerList.addEventListener('click', (e)=>{
-    const btn = e.target.closest('button'); if(!btn) return;
-    if(btn.dataset.setOpp){ mOpponent.value = btn.dataset.setOpp; return; }
-    if(btn.dataset.rename){
-      const old = btn.dataset.rename; const neo = prompt('Rename opponent', old);
-      if(neo && neo.trim()){
-        state.players = state.players.map(p=> p===old? neo.trim(): p);
-        for(const m of state.matches){ if(m.opponent===old) m.opponent = neo.trim(); }
-        save(); renderPlayers(); renderMatches(); renderLeague();
-      }
-    }
-    if(btn.dataset.remove){
-      const name = btn.dataset.remove;
-      state.players = state.players.filter(p=>p!==name);
-      save(); renderPlayers();
-    }
-  });
-
-  // ---------- Event Info ----------
-  saveEvent.addEventListener('click', ()=>{
-    state.eventName = eventName.value.trim();
-    state.eventVenue = eventVenue.value.trim();
-    save(); eventSaved.classList.remove('hidden'); setTimeout(()=>eventSaved.classList.add('hidden'), 1200);
-  });
-
-  // ---------- Matches ----------
-  function fmtFormat(n){ return n==1? '1 set' : (n==3? 'Bo3' : 'Bo5'); }
-  function parseScore(raw){
-    return raw.split(';').map(s=>s.trim()).filter(Boolean).map(s=>{
-      const m = s.match(/(\d+)\s*[-–]\s*(\d+)/); return m ? [ +m[1], +m[2] ] : null;
-    }).filter(Boolean);
-  }
-
+  // Matches
+  function fmtFormat(n){ return n==1?'1 set':(n==3?'Bo3':'Bo5'); }
   function addMatch(){
-    const m = {
-      id: crypto.randomUUID(),
-      date: mDate.value || new Date().toISOString().slice(0,10),
-      opponent: mOpponent.value || '',
-      format: +mFormat.value,
-      result: mResult.value,
-      score: mScore.value.trim(),
-      surface: mSurface.value,
-      notes: mNotes.value.trim()
-    };
+    const m={ id:crypto.randomUUID(), date:mDate.value||new Date().toISOString().slice(0,10), opponent:mOpponent.value||'', format:+mFormat.value, result:mResult.value, score:mScore.value.trim(), surface:mSurface.value, notes:mNotes.value.trim() };
     if(!m.opponent){ alert('Pick an opponent'); return; }
     state.matches.push(m); save();
-    document.getElementById('savedMsg').classList.remove('hidden'); setTimeout(()=>document.getElementById('savedMsg').classList.add('hidden'), 1200);
+    document.getElementById('savedMsg').classList.remove('hidden'); setTimeout(()=>document.getElementById('savedMsg').classList.add('hidden'),1200);
     mScore.value=''; mNotes.value='';
-    renderMatches(); renderLeague(); renderNotes();
+    renderStats(); renderBreakdowns(); renderMatches(); renderNotes();
   }
-  addMatchBtn.addEventListener('click', addMatch);
+  addMatchBtn.addEventListener('click',addMatch);
 
   function renderMatches(){
-    const rows = [];
-    const data = [...state.matches].sort((a,b)=> a.date < b.date ? 1 : -1);
-    matchCount.textContent = data.length;
-    for(const m of data){
-      const tr = document.createElement('tr');
-      tr.className = 'hover:bg-gray-50';
-      tr.innerHTML = `
-        <td class="py-2 pr-3 whitespace-nowrap">${escapeHtml(m.date)}</td>
-        <td class="py-2 pr-3">${escapeHtml(m.opponent)}</td>
-        <td class="py-2 pr-3">${fmtFormat(m.format)}</td>
-        <td class="py-2 pr-3">${m.result==='W' ? '<span class=\'text-green-700\'>W</span>' : '<span class=\'text-red-700\'>L</span>'}</td>
-        <td class="py-2 pr-3">${escapeHtml(m.score)}</td>
-        <td class="py-2 pr-3">${escapeHtml(m.surface)}</td>
-        <td class="py-2 pr-3 max-w-[240px] truncate" title="${escapeHtml(m.notes||'')}">${escapeHtml(m.notes||'')}</td>
-        <td class="py-2 flex gap-2">
-          <button class="btn text-xs" data-edit="${m.id}">Edit</button>
-          <button class="btn text-xs" data-del="${m.id}">Delete</button>
-        </td>`;
-      rows.push(tr);
-    }
+    const rows=[]; const data=[...state.matches].sort((a,b)=>a.date<b.date?1:-1); matchCount.textContent=data.length;
+    for(const m of data){ const tr=document.createElement('tr'); tr.className='hover:bg-gray-50'; tr.innerHTML=`
+      <td class="py-2 pr-3 whitespace-nowrap">${escapeHtml(m.date)}</td>
+      <td class="py-2 pr-3">${escapeHtml(m.opponent)}</td>
+      <td class="py-2 pr-3">${fmtFormat(m.format)}</td>
+      <td class="py-2 pr-3">${m.result==='W'?'<span class=\'text-green-700\'>W</span>':'<span class=\'text-red-700\'>L</span>'}</td>
+      <td class="py-2 pr-3">${escapeHtml(m.score)}</td>
+      <td class="py-2 pr-3">${escapeHtml(m.surface)}</td>
+      <td class="py-2 pr-3 max-w-[240px] truncate" title="${escapeHtml(m.notes||'')}">${escapeHtml(m.notes||'')}</td>
+      <td class="py-2 flex gap-2"><button class="btn text-xs" data-edit="${m.id}">Edit</button><button class="btn text-xs" data-del="${m.id}">Delete</button></td>`; rows.push(tr); }
     matchBody.replaceChildren(...rows);
   }
+  matchBody.addEventListener('click',(e)=>{ const btn=e.target.closest('button'); if(!btn) return; const id=btn.dataset.edit||btn.dataset.del; const idx=state.matches.findIndex(x=>x.id===id); if(idx<0) return; if(btn.dataset.del){ if(confirm('Delete this match?')){ state.matches.splice(idx,1); save(); renderStats(); renderBreakdowns(); renderMatches(); renderNotes(); } return; } if(btn.dataset.edit){ const m=state.matches[idx]; const raw=prompt('Edit (date,opponent,format,result,score,surface,notes)',`${m.date},${m.opponent},${m.format},${m.result},${m.score},${m.surface},${m.notes||''}`); if(raw){ const p=raw.split(','); if(p.length>=7){ [m.date,m.opponent,m.format,m.result,m.score,m.surface,m.notes]=[p[0],p[1],+p[2],p[3],p[4],p[5],p.slice(6).join(',')]; save(); renderStats(); renderBreakdowns(); renderMatches(); renderNotes(); } } } });
 
-  matchBody.addEventListener('click', (e)=>{
-    const btn = e.target.closest('button'); if(!btn) return;
-    const id = btn.dataset.edit || btn.dataset.del; const idx = state.matches.findIndex(x=>x.id===id);
-    if(idx<0) return;
-    if(btn.dataset.del){ if(confirm('Delete this match?')){ state.matches.splice(idx,1); save(); renderMatches(); renderLeague(); renderNotes(); } return; }
-    if(btn.dataset.edit){
-      const m = state.matches[idx];
-      const raw = prompt('Edit (date,opponent,format,result,score,surface,notes)', `${m.date},${m.opponent},${m.format},${m.result},${m.score},${m.surface},${m.notes||''}`);
-      if(raw){
-        const p = raw.split(','); if(p.length>=7){ [m.date,m.opponent,m.format,m.result,m.score,m.surface,m.notes] = [p[0],p[1],+p[2],p[3],p[4],p[5],p.slice(6).join(',')]; save(); renderMatches(); renderLeague(); renderNotes(); }
-      }
-    }
-  });
-
-  // ---------- League (Helmi fixed) ----------
-  function computeLeague(){
-    const table = new Map();
-    table.set('Helmi',{P:0,W:0,L:0,pts:0});
-    for(const opp of state.players){ if(!table.has(opp)) table.set(opp,{P:0,W:0,L:0,pts:0}); }
-    for(const m of state.matches){
-      const opp = m.opponent; if(!table.has(opp)) table.set(opp,{P:0,W:0,L:0,pts:0});
-      const H = table.get('Helmi'); const O = table.get(opp);
-      H.P++; O.P++;
-      if(m.result==='W'){ H.W++; H.pts+=3; O.L++; } else { O.W++; O.pts+=3; H.L++; }
-    }
-    return [...table.entries()].map(([player,v])=>({player,...v})).sort((a,b)=> b.pts-a.pts || b.W-a.W || a.player.localeCompare(b.player));
+  // Stats & Breakdowns
+  function renderStats(){
+    const t=state.matches.reduce((a,m)=>{ if(m.result==='W') a.W++; else if(m.result==='L') a.L++; return a; },{W:0,L:0});
+    const total=t.W+t.L; const pct= total? Math.round(t.W*100/total):0;
+    const wlEl=el('statWL'), wpEl=el('statWinPct'), totEl=el('statTotal');
+    if(wlEl) wlEl.textContent=`${t.W}–${t.L}`; if(wpEl) wpEl.textContent=pct+'%'; if(totEl) totEl.textContent=String(total);
   }
-  function renderLeague(){
-    const body = document.getElementById('leagueBody');
-    const rows = [];
-    for(const r of computeLeague()){
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td class="py-2 pr-3 font-medium">${escapeHtml(r.player)}</td><td class="py-2 pr-3">${r.P}</td><td class="py-2 pr-3">${r.W}</td><td class="py-2 pr-3">${r.L}</td><td class="py-2 pr-3">${r.pts}</td>`;
-      rows.push(tr);
-    }
-    body.replaceChildren(...rows);
+  function renderBreakdowns(){
+    // By Month
+    const monthMap=new Map();
+    for(const m of state.matches){ const k=(m.date||'').slice(0,7); if(!k) continue; const r=monthMap.get(k)||{W:0,L:0}; r[m.result]=(r[m.result]||0)+1; monthMap.set(k,r); }
+    const months=[...monthMap.keys()].sort(); const mBody=el('monthlyBody'); if(mBody){ const rows=months.map(k=>{ const r=monthMap.get(k), W=r.W||0, L=r.L||0, T=W+L, P=T?Math.round(W*100/T):0; const tr=document.createElement('tr'); tr.innerHTML=`<td class="py-2 pr-3">${k}</td><td class="py-2 pr-3">${W}</td><td class="py-2 pr-3">${L}</td><td class="py-2 pr-3">${P}%</td><td class="py-2 pr-3">${T}</td>`; return tr; }); mBody.replaceChildren(...rows); }
+    // By Surface
+    const surfMap=new Map();
+    for(const m of state.matches){ const k=m.surface||'Unknown'; const r=surfMap.get(k)||{W:0,L:0}; r[m.result]=(r[m.result]||0)+1; surfMap.set(k,r); }
+    const sBody=el('surfaceBody'); if(sBody){ const rows=[...surfMap.keys()].sort().map(k=>{ const r=surfMap.get(k), W=r.W||0, L=r.L||0, T=W+L, P=T?Math.round(W*100/T):0; const tr=document.createElement('tr'); tr.innerHTML=`<td class="py-2 pr-3">${k}</td><td class="py-2 pr-3">${W}</td><td class="py-2 pr-3">${L}</td><td class="py-2 pr-3">${P}%</td><td class="py-2 pr-3">${T}</td>`; return tr; }); sBody.replaceChildren(...rows); }
   }
 
-  // ---------- Notes Cloud ----------
+  // Notes Cloud
   function renderNotes(){
-    const words = {};
-    for(const m of state.matches){
-      const line = (m.notes||'').toLowerCase();
-      for(const w of line.split(/[^a-z0-9]+/)){ if(w && w.length>2){ words[w] = (words[w]||0)+1; } }
-    }
-    const entries = Object.entries(words).sort((a,b)=>b[1]-a[1]).slice(0,50);
-    const cloud = document.getElementById('notesCloud');
-    cloud.innerHTML='';
-    if(!entries.length){ cloud.textContent = 'No notes yet. Add notes to matches to generate the cloud.'; return; }
-    const max = entries[0][1];
-    for(const [w,c] of entries){
-      const span = document.createElement('span');
-      const scale = 0.8 + (c/max)*1.4; // 0.8x to 2.2x
-      span.textContent = w;
-      span.style.fontSize = (0.9*scale)+'rem';
-      span.className = 'mr-2 inline-block';
-      cloud.appendChild(span);
-    }
+    const words={}; for(const m of state.matches){ const line=(m.notes||'').toLowerCase(); for(const w of line.split(/[^a-z0-9]+/)){ if(w&&w.length>2){ words[w]=(words[w]||0)+1; } } }
+    const entries=Object.entries(words).sort((a,b)=>b[1]-a[1]).slice(0,50); const cloud=el('notesCloud'); cloud.innerHTML=''; if(!entries.length){ cloud.textContent='No notes yet. Add notes to matches to generate the cloud.'; return; } const max=entries[0][1]; for(const [w,c] of entries){ const span=document.createElement('span'); const scale=.8 + (c/max)*1.4; span.textContent=w; span.style.fontSize=(0.9*scale)+'rem'; span.className='mr-2 inline-block'; cloud.appendChild(span); }
   }
 
-  // ---------- Import/Export & PDF ----------
-  document.getElementById('btnExport').addEventListener('click', ()=>{
-    const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='helmi-tennis-data.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 400);
-  });
-  document.getElementById('fileImport').addEventListener('change', (e)=>{
-    const f = e.target.files?.[0]; if(!f) return; const r = new FileReader(); r.onload = ()=>{ try { state = JSON.parse(r.result); save(); init(); } catch { alert('Invalid JSON'); } }; r.readAsText(f); e.target.value='';
-  });
-  document.getElementById('btnPDF').addEventListener('click', ()=> window.print());
+  // Import / Export / PDF
+  document.getElementById('btnExport').addEventListener('click',()=>{ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='helmi-tennis-data.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),400); });
+  document.getElementById('fileImport').addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ state=JSON.parse(r.result); save(); init(); } catch{ alert('Invalid JSON'); } }; r.readAsText(f); e.target.value=''; });
+  document.getElementById('btnPDF').addEventListener('click',()=>window.print());
 
-  // ---------- Utils ----------
-  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, (c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
+  // Utils
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
 
-  // ---------- Boot ----------
   init();
   </script>
 </body>
