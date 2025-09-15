@@ -4,316 +4,247 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Helmi’s Tennis Matches</title>
+
+  <!-- Fonts + Tailwind -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui']}}}};</script>
+  <!-- Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    :root{--bg:#f7fafc;--card:#fff;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--brand:#2563eb;--brand-700:#1d4ed8;--r:14px}
-    html,body{height:100%;font-family:'Inter',ui-sans-serif,system-ui;background:var(--bg);color:var(--text)}
-    .card{background:var(--card);border-radius:var(--r);box-shadow:0 10px 30px rgba(0,0,0,.05);border:1px solid var(--border)}
-    .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:12px;border:1px solid var(--border);background:var(--card);padding:.5rem .75rem;font-size:.9rem}
-    .btn:hover{background:rgba(0,0,0,.02)}
-    .btn-primary{background:var(--brand);color:#fff;border-color:transparent}
-    .btn-primary:hover{background:var(--brand-700)}
-    .field{width:100%;border-radius:12px;border:1px solid var(--border);padding:.5rem .75rem}
+    body{font-family:'Inter',system-ui,Arial,sans-serif;background:#f7fafc;color:#111827}
+    .card{background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.06);padding:1rem}
+    .field{border:1px solid #d1d5db;border-radius:10px;padding:.6rem .8rem;width:100%}
+    .btn{border:1px solid #d1d5db;border-radius:10px;padding:.55rem .9rem}
+    .btn-primary{background:#2563eb;color:#fff;border:none}
+    @media (max-width:640px){h1{font-size:1.1rem}.grid{gap:.5rem} table{font-size:.9rem} th,td{padding:.35rem .5rem}}
   </style>
 </head>
 <body>
-  <header class="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/70 bg-white/90 border-b border-gray-200">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-blue-600 text-white grid place-content-center text-lg">🎾</div>
-        <div>
-          <h1 class="text-xl sm:text-2xl font-bold">Helmi’s Tennis Matches</h1>
-          <p class="text-xs text-gray-600">Single HTML file • LocalStorage • Print to PDF</p>
-        </div>
-      </div>
-      <div class="flex flex-wrap gap-2 items-center">
-        <button id="btnExport" class="btn">Export</button>
-        <label class="btn cursor-pointer"><input id="fileImport" type="file" accept=".json" class="hidden"/>Import</label>
-        <button id="btnPDF" class="btn">Save PDF</button>
-      </div>
+  <!-- Header -->
+  <header class="card mb-4 flex flex-col sm:flex-row gap-2 sm:gap-4 items-start sm:items-center justify-between">
+    <h1 class="text-xl font-bold">Helmi’s Tennis Matches</h1>
+    <div class="flex gap-2 flex-wrap">
+      <button id="btnExport" class="btn">Export to Excel</button>
+      <button id="btnPrint" class="btn">Save PDF</button>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-6 grid lg:grid-cols-3 gap-6">
-    <aside class="lg:col-span-1 space-y-6">
-      <section class="card p-5">
-        <h2 class="text-lg font-semibold mb-3">Opponents</h2>
-        <div class="flex gap-2 mb-3">
-          <input id="playerInput" class="field" placeholder="Add opponent name" />
-          <button id="addPlayer" class="btn-primary px-4 rounded-xl">Add</button>
-        </div>
-        <div class="text-xs text-gray-600 mb-2">Tap a name to set as opponent for quick entry.</div>
-        <ul id="playerList" class="space-y-1"></ul>
-      </section>
+  <main class="max-w-6xl mx-auto space-y-4 px-2 sm:px-0">
+    <!-- Opponents -->
+    <section class="card">
+      <h2 class="font-semibold mb-2">Opponents</h2>
+      <div class="flex flex-col sm:flex-row gap-2 mb-2">
+        <input id="playerInput" class="field" placeholder="Add opponent name" />
+        <button id="addPlayer" class="btn-primary">Add</button>
+      </div>
+      <p class="text-xs text-gray-600 mb-2">Tap a name to select it in the match form.</p>
+      <ul id="playerList" class="space-y-1 text-sm"></ul>
+    </section>
 
-      <section class="card p-5">
-        <h2 class="text-lg font-semibold mb-3">Event Info</h2>
-        <div class="space-y-3">
-          <div>
-            <label class="text-xs text-gray-600">Event / League Name</label>
-            <input id="eventName" class="field" placeholder="e.g., Friday Night Singles" />
-          </div>
-          <div>
-            <label class="text-xs text-gray-600">Venue</label>
-            <input id="eventVenue" class="field" placeholder="e.g., Kiara Park Courts" />
-          </div>
-          <div class="flex items-center gap-2">
-            <button id="saveEvent" class="btn-primary px-4 rounded-xl">Save</button>
-            <span id="eventSaved" class="text-xs text-green-700 hidden">Saved</span>
-          </div>
-        </div>
-      </section>
+    <!-- Add Match -->
+    <section class="card">
+      <h2 class="font-semibold mb-2">Add Match</h2>
+      <div class="grid md:grid-cols-3 gap-3 mb-2">
+        <input id="mDate" type="date" class="field" />
+        <select id="mOpponent" class="field"></select>
+        <select id="mFormat" class="field">
+          <option value="1">Single Set</option>
+          <option value="3">Best of 3</option>
+          <option value="5">Best of 5</option>
+        </select>
+        <select id="mResult" class="field"><option value="W">Win</option><option value="L">Loss</option></select>
+        <input id="mScore" class="field" placeholder="Score e.g., 6-4; 3-6; 10-8" />
+        <select id="mSurface" class="field"><option>Hard</option><option>Clay</option><option>Grass</option><option>Carpet</option></select>
+        <input id="mNotes" class="field md:col-span-3" placeholder="Notes (wind, strings, strategy, cramps…)" />
+      </div>
+      <button id="addMatch" class="btn-primary">Add Match</button>
+    </section>
 
-      <section class="card p-5">
-        <h2 class="text-lg font-semibold mb-3">Statistics</h2>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <div class="p-3 rounded-lg border border-gray-200">
-            <div class="text-xs text-gray-600">Win–Loss</div>
-            <div id="statWL" class="text-xl font-semibold">0–0</div>
-          </div>
-          <div class="p-3 rounded-lg border border-gray-200">
-            <div class="text-xs text-gray-600">Winning %</div>
-            <div id="statWinPct" class="text-xl font-semibold">0%</div>
-          </div>
-          <div class="p-3 rounded-lg border border-gray-200">
-            <div class="text-xs text-gray-600">Matches</div>
-            <div id="statTotal" class="text-xl font-semibold">0</div>
-          </div>
-        </div>
-      </section>
-    </aside>
+    <!-- Stats -->
+    <section class="card">
+      <h2 class="font-semibold mb-3">Statistics</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div><div class="text-xs text-gray-600">Win–Loss</div><div id="statWL" class="text-lg font-bold">0–0</div></div>
+        <div><div class="text-xs text-gray-600">Winning %</div><div id="statWinPct" class="text-lg font-bold">0%</div></div>
+        <div><div class="text-xs text-gray-600">Matches</div><div id="statTotal" class="text-lg font-bold">0</div></div>
+        <div><div class="text-xs text-gray-600">Current Streak</div><div id="statStreak" class="text-lg font-bold">–</div></div>
+      </div>
+      <div class="grid lg:grid-cols-2 gap-4">
+        <div class="min-h-[220px]"><canvas id="chartMonth"></canvas></div>
+        <div class="min-h-[220px]"><canvas id="chartSurface"></canvas></div>
+      </div>
+    </section>
 
-    <section class="lg:col-span-2 space-y-6">
-      <section class="card p-5">
-        <h2 class="text-lg font-semibold mb-4">Add Match</h2>
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div>
-            <label class="text-xs text-gray-600">Date</label>
-            <input id="mDate" type="date" class="field" />
-          </div>
-          <div>
-            <label class="text-xs text-gray-600">Opponent</label>
-            <select id="mOpponent" class="field"></select>
-          </div>
-          <div>
-            <label class="text-xs text-gray-600">Format</label>
-            <select id="mFormat" class="field">
-              <option value="1">Single Set</option>
-              <option value="3">Best of 3</option>
-              <option value="5">Best of 5</option>
-            </select>
-          </div>
-          <div>
-            <label class="text-xs text-gray-600">Result</label>
-            <select id="mResult" class="field"><option value="W">Win</option><option value="L">Loss</option></select>
-          </div>
-          <div>
-            <label class="text-xs text-gray-600">Score</label>
-            <input id="mScore" class="field" placeholder="e.g., 6-4; 3-6; 10-8" />
-          </div>
-          <div>
-            <label class="text-xs text-gray-600">Surface</label>
-            <select id="mSurface" class="field"><option>Hard</option><option>Clay</option><option>Grass</option><option>Carpet</option></select>
-          </div>
-          <div class="md:col-span-2 lg:col-span-3">
-            <label class="text-xs text-gray-600">Notes</label>
-            <input id="mNotes" class="field" placeholder="e.g., wind, cramps, strings, strategy" />
-          </div>
+    <!-- Breakdowns tables -->
+    <section class="card">
+      <h2 class="font-semibold mb-3">Breakdowns</h2>
+      <div class="grid lg:grid-cols-2 gap-4">
+        <div>
+          <h3 class="font-semibold mb-2">By Month</h3>
+          <div class="overflow-x-auto"><table class="min-w-full text-sm">
+            <thead class="text-left text-gray-600 border-b"><tr><th class="py-2 pr-3">Month</th><th class="py-2 pr-3">W</th><th class="py-2 pr-3">L</th><th class="py-2 pr-3">Win %</th><th class="py-2 pr-3">Matches</th></tr></thead>
+            <tbody id="monthlyBody" class="divide-y"></tbody>
+          </table></div>
         </div>
-        <div class="mt-4 flex gap-2">
-          <button id="addMatch" class="btn-primary px-4 rounded-xl">Add Match</button>
-          <span id="savedMsg" class="text-sm text-green-700 hidden">Saved</span>
+        <div>
+          <h3 class="font-semibold mb-2">By Surface</h3>
+          <div class="overflow-x-auto"><table class="min-w-full text-sm">
+            <thead class="text-left text-gray-600 border-b"><tr><th class="py-2 pr-3">Surface</th><th class="py-2 pr-3">W</th><th class="py-2 pr-3">L</th><th class="py-2 pr-3">Win %</th><th class="py-2 pr-3">Matches</th></tr></thead>
+            <tbody id="surfaceBody" class="divide-y"></tbody>
+          </table></div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="card p-5">
-        <h2 class="text-lg font-semibold mb-4">Breakdowns</h2>
-        <div class="grid lg:grid-cols-2 gap-4">
-          <div>
-            <h3 class="font-semibold mb-2">By Month</h3>
-            <div class="overflow-x-auto">
-              <table class="min-w-full text-sm">
-                <thead class="text-left text-gray-600 border-b">
-                  <tr><th class="py-2 pr-3">Month</th><th class="py-2 pr-3">W</th><th class="py-2 pr-3">L</th><th class="py-2 pr-3">Win %</th><th class="py-2 pr-3">Matches</th></tr>
-                </thead>
-                <tbody id="monthlyBody" class="divide-y"></tbody>
-              </table>
-            </div>
-          </div>
-          <div>
-            <h3 class="font-semibold mb-2">By Surface</h3>
-            <div class="overflow-x-auto">
-              <table class="min-w-full text-sm">
-                <thead class="text-left text-gray-600 border-b">
-                  <tr><th class="py-2 pr-3">Surface</th><th class="py-2 pr-3">W</th><th class="py-2 pr-3">L</th><th class="py-2 pr-3">Win %</th><th class="py-2 pr-3">Matches</th></tr>
-                </thead>
-                <tbody id="surfaceBody" class="divide-y"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
+    <!-- Match History -->
+    <section class="card">
+      <h2 class="font-semibold mb-2">Match History</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr><th>Date</th><th>Opponent</th><th>Result</th><th>Score</th><th>Surface</th><th>Notes</th><th>Actions</th></tr></thead>
+          <tbody id="matchBody"></tbody>
+        </table>
+      </div>
+    </section>
 
-      <section class="card p-5">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-lg font-semibold">Match History</h2>
-          <div class="text-sm text-gray-600"><span id="matchCount">0</span> matches</div>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead class="text-left text-gray-600 border-b">
-              <tr>
-                <th class="py-2 pr-3">Date</th>
-                <th class="py-2 pr-3">Opponent</th>
-                <th class="py-2 pr-3">Format</th>
-                <th class="py-2 pr-3">Result</th>
-                <th class="py-2 pr-3">Score</th>
-                <th class="py-2 pr-3">Surface</th>
-                <th class="py-2 pr-3">Notes</th>
-                <th class="py-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="matchBody" class="divide-y"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="card p-5">
-        <h2 class="text-lg font-semibold mb-2">Notes Cloud</h2>
-        <div class="text-xs text-gray-600 mb-2">Built from all match notes. Larger words appear more often.</div>
-        <div id="notesCloud" class="min-h-[96px]"></div>
-      </section>
+    <!-- Notes Cloud -->
+    <section class="card">
+      <h2 class="font-semibold mb-2">Notes Cloud</h2>
+      <div id="notesCloud" class="min-h-[100px]"></div>
     </section>
   </main>
 
-  <footer class="text-center text-xs text-gray-500 py-6">Data stays in your browser • Print to PDF for sharing</footer>
+<script>
+// ---------- Storage ----------
+const LS_KEY='helmi_tennis_final_v1';
+let state=JSON.parse(localStorage.getItem(LS_KEY)||'{"players":[],"matches":[]}');
+const el=id=>document.getElementById(id);
+function save(){localStorage.setItem(LS_KEY,JSON.stringify(state));}
 
-  <script>
-  // Storage
-  const LS_KEY='helmi_tennis_stats_v1';
-  const defaultState={eventName:'',eventVenue:'',players:[],matches:[]};
-  let state=load();
-  function load(){try{return JSON.parse(localStorage.getItem(LS_KEY))||structuredClone(defaultState);}catch{return structuredClone(defaultState)}}
-  function save(){localStorage.setItem(LS_KEY,JSON.stringify(state));}
+// ---------- Opponents ----------
+function renderPlayers(){
+  const list=el('playerList'); list.innerHTML='';
+  const select=el('mOpponent'); select.innerHTML='';
+  state.players.sort().forEach(p=>{
+    const li=document.createElement('li'); li.textContent=p; li.className='cursor-pointer hover:underline'; li.onclick=()=>select.value=p; list.appendChild(li);
+    select.append(new Option(p,p));
+  });
+}
 
-  // Elements
-  const el=(id)=>document.getElementById(id);
-  const playerInput=el('playerInput');
-  const addPlayerBtn=el('addPlayer');
-  const playerList=el('playerList');
-  const mDate=el('mDate');
-  const mOpponent=el('mOpponent');
-  const mFormat=el('mFormat');
-  const mResult=el('mResult');
-  const mScore=el('mScore');
-  const mSurface=el('mSurface');
-  const mNotes=el('mNotes');
-  const addMatchBtn=el('addMatch');
-  const matchBody=el('matchBody');
-  const matchCount=el('matchCount');
-  const eventName=el('eventName');
-  const eventVenue=el('eventVenue');
-  const saveEvent=el('saveEvent');
-  const eventSaved=el('eventSaved');
+// ---------- Matches ----------
+function addMatch(){
+  const m={ id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())), date:el('mDate').value, opponent:el('mOpponent').value, format:+el('mFormat').value, result:el('mResult').value, score:el('mScore').value, surface:el('mSurface').value, notes:el('mNotes').value };
+  if(!m.opponent){ alert('Pick an opponent'); return; }
+  state.matches.push(m); save();
+  renderAll();
+}
 
-  function init(){
-    eventName.value=state.eventName||'';
-    eventVenue.value=state.eventVenue||'';
-    mDate.value=new Date().toISOString().slice(0,10);
-    renderPlayers();
-    renderStats();
-    renderBreakdowns();
-    renderMatches();
-    renderNotes();
-  }
+function renderMatches(){
+  const body=el('matchBody'); body.innerHTML='';
+  const rows=state.matches.slice().sort((a,b)=>a.date<b.date?1:-1);
+  rows.forEach(m=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${m.date||''}</td><td>${m.opponent||''}</td><td>${m.result||''}</td><td>${m.score||''}</td><td>${m.surface||''}</td><td>${m.notes||''}</td>
+    <td><button class="btn text-xs" data-edit="${m.id}">Edit</button> <button class="btn text-xs" data-del="${m.id}">Delete</button></td>`;
+    body.appendChild(tr);
+  });
+}
 
-  // Opponents
-  function renderPlayers(){
-    playerList.innerHTML='';
-    const names=[...state.players].sort((a,b)=>a.localeCompare(b));
-    const prev=mOpponent.value; mOpponent.innerHTML='';
-    for(const n of names){ mOpponent.append(new Option(n,n)); }
-    if(prev) mOpponent.value=prev;
-    for(const n of names){
-      const li=document.createElement('li'); li.className='flex items-center justify-between rounded-lg px-3 py-2 hover:bg-gray-50';
-      li.innerHTML=`<button class="text-left flex-1" data-set-opp="${escapeHtml(n)}">${escapeHtml(n)}</button>
-        <div class="flex gap-2">
-          <button class="btn text-xs" data-rename="${escapeHtml(n)}">Rename</button>
-          <button class="btn text-xs" data-remove="${escapeHtml(n)}">Remove</button>
-        </div>`;
-      playerList.appendChild(li);
-    }
-  }
-  addPlayerBtn.addEventListener('click',()=>{ const name=(playerInput.value||'').trim(); if(!name) return; if(!state.players.includes(name)) state.players.push(name); playerInput.value=''; save(); renderPlayers(); });
-  playerList.addEventListener('click',(e)=>{ const btn=e.target.closest('button'); if(!btn) return; if(btn.dataset.setOpp){ mOpponent.value=btn.dataset.setOpp; return; } if(btn.dataset.rename){ const old=btn.dataset.rename; const neo=prompt('Rename opponent',old); if(neo&&neo.trim()){ state.players=state.players.map(p=>p===old?neo.trim():p); for(const m of state.matches){ if(m.opponent===old) m.opponent=neo.trim(); } save(); renderPlayers(); renderMatches(); renderStats(); renderBreakdowns(); } } if(btn.dataset.remove){ const name=btn.dataset.remove; state.players=state.players.filter(p=>p!==name); save(); renderPlayers(); }});
+// Edit / Delete including score
+el('matchBody').addEventListener('click',(e)=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const id=b.dataset.edit||b.dataset.del; const idx=state.matches.findIndex(x=>String(x.id)===String(id)); if(idx<0) return;
+  if(b.dataset.del){ if(confirm('Delete this match?')){ state.matches.splice(idx,1); save(); renderAll(); } return; }
+  const m=state.matches[idx];
+  const raw=prompt('Edit (date,opponent,result,score,surface,notes)', `${m.date||''},${m.opponent||''},${m.result||''},${m.score||''},${m.surface||''},${m.notes||''}`);
+  if(raw){ const p=raw.split(','); if(p.length>=6){ [m.date,m.opponent,m.result,m.score,m.surface,m.notes]=[p[0],p[1],p[2],p[3],p[4],p.slice(5).join(',')]; save(); renderAll(); } }
+});
 
-  // Event
-  saveEvent.addEventListener('click',()=>{ state.eventName=eventName.value.trim(); state.eventVenue=eventVenue.value.trim(); save(); eventSaved.classList.remove('hidden'); setTimeout(()=>eventSaved.classList.add('hidden'),1200); });
+// ---------- Stats + Charts ----------
+function renderStats(){
+  const w=state.matches.filter(x=>x.result==='W').length;
+  const l=state.matches.filter(x=>x.result==='L').length;
+  const total=w+l;
+  el('statWL').textContent=`${w}–${l}`;
+  el('statWinPct').textContent= total? Math.round(w/total*100)+'%':'0%';
+  el('statTotal').textContent= total;
+  // streak (based on input order)
+  let streak=0, last=null; state.matches.forEach(m=>{ if(last===null||m.result===last){ streak++; } else { streak=1; } last=m.result; });
+  el('statStreak').textContent= total? String(streak):'–';
+}
 
-  // Matches
-  function fmtFormat(n){ return n==1?'1 set':(n==3?'Bo3':'Bo5'); }
-  function addMatch(){
-    const m={ id:crypto.randomUUID(), date:mDate.value||new Date().toISOString().slice(0,10), opponent:mOpponent.value||'', format:+mFormat.value, result:mResult.value, score:mScore.value.trim(), surface:mSurface.value, notes:mNotes.value.trim() };
-    if(!m.opponent){ alert('Pick an opponent'); return; }
-    state.matches.push(m); save();
-    document.getElementById('savedMsg').classList.remove('hidden'); setTimeout(()=>document.getElementById('savedMsg').classList.add('hidden'),1200);
-    mScore.value=''; mNotes.value='';
-    renderStats(); renderBreakdowns(); renderMatches(); renderNotes();
-  }
-  addMatchBtn.addEventListener('click',addMatch);
+function renderCharts(){
+  // Monthly
+  const monthly={};
+  state.matches.forEach(m=>{ const k=(m.date||'').slice(0,7); if(!k) return; monthly[k]=(monthly[k]||{W:0,L:0}); monthly[k][m.result]++; });
+  const mLabels=Object.keys(monthly).sort();
+  const mWins=mLabels.map(k=>monthly[k].W||0);
+  const mLosses=mLabels.map(k=>monthly[k].L||0);
+  if(window._monthChart) window._monthChart.destroy();
+  window._monthChart=new Chart(document.getElementById('chartMonth'),{type:'bar',data:{labels:mLabels,datasets:[{label:'Wins',data:mWins,backgroundColor:'#2563eb'},{label:'Losses',data:mLosses,backgroundColor:'#ef4444'}]},options:{responsive:true,maintainAspectRatio:false}});
+  // Surface
+  const surface={};
+  state.matches.forEach(m=>{ const k=m.surface||'Unknown'; surface[k]=(surface[k]||{W:0,L:0}); surface[k][m.result]++; });
+  const sLabels=Object.keys(surface);
+  const sWins=sLabels.map(k=>surface[k].W||0);
+  const sLosses=sLabels.map(k=>surface[k].L||0);
+  if(window._surfChart) window._surfChart.destroy();
+  window._surfChart=new Chart(document.getElementById('chartSurface'),{type:'bar',data:{labels:sLabels,datasets:[{label:'Wins',data:sWins,backgroundColor:'#10b981'},{label:'Losses',data:sLosses,backgroundColor:'#f59e0b'}]},options:{responsive:true,maintainAspectRatio:false}});
+}
 
-  function renderMatches(){
-    const rows=[]; const data=[...state.matches].sort((a,b)=>a.date<b.date?1:-1); matchCount.textContent=data.length;
-    for(const m of data){ const tr=document.createElement('tr'); tr.className='hover:bg-gray-50'; tr.innerHTML=`
-      <td class="py-2 pr-3 whitespace-nowrap">${escapeHtml(m.date)}</td>
-      <td class="py-2 pr-3">${escapeHtml(m.opponent)}</td>
-      <td class="py-2 pr-3">${fmtFormat(m.format)}</td>
-      <td class="py-2 pr-3">${m.result==='W'?'<span class=\'text-green-700\'>W</span>':'<span class=\'text-red-700\'>L</span>'}</td>
-      <td class="py-2 pr-3">${escapeHtml(m.score)}</td>
-      <td class="py-2 pr-3">${escapeHtml(m.surface)}</td>
-      <td class="py-2 pr-3 max-w-[240px] truncate" title="${escapeHtml(m.notes||'')}">${escapeHtml(m.notes||'')}</td>
-      <td class="py-2 flex gap-2"><button class="btn text-xs" data-edit="${m.id}">Edit</button><button class="btn text-xs" data-del="${m.id}">Delete</button></td>`; rows.push(tr); }
-    matchBody.replaceChildren(...rows);
-  }
-  matchBody.addEventListener('click',(e)=>{ const btn=e.target.closest('button'); if(!btn) return; const id=btn.dataset.edit||btn.dataset.del; const idx=state.matches.findIndex(x=>x.id===id); if(idx<0) return; if(btn.dataset.del){ if(confirm('Delete this match?')){ state.matches.splice(idx,1); save(); renderStats(); renderBreakdowns(); renderMatches(); renderNotes(); } return; } if(btn.dataset.edit){ const m=state.matches[idx]; const raw=prompt('Edit (date,opponent,format,result,score,surface,notes)',`${m.date},${m.opponent},${m.format},${m.result},${m.score},${m.surface},${m.notes||''}`); if(raw){ const p=raw.split(','); if(p.length>=7){ [m.date,m.opponent,m.format,m.result,m.score,m.surface,m.notes]=[p[0],p[1],+p[2],p[3],p[4],p[5],p.slice(6).join(',')]; save(); renderStats(); renderBreakdowns(); renderMatches(); renderNotes(); } } } });
+function renderBreakdowns(){
+  // Month table
+  const monthly=new Map();
+  for(const m of state.matches){ const key=(m.date||'').slice(0,7); if(!key) continue; const row=monthly.get(key)||{W:0,L:0}; row[m.result]=(row[m.result]||0)+1; monthly.set(key,row); }
+  const months=[...monthly.keys()].sort();
+  const mBody=document.getElementById('monthlyBody'); if(mBody){ const rows=months.map(k=>{ const r=monthly.get(k), W=r.W||0, L=r.L||0, T=W+L, P=T?Math.round(W*100/T):0; const tr=document.createElement('tr'); tr.innerHTML=`<td class="py-2 pr-3">${k}</td><td class="py-2 pr-3">${W}</td><td class="py-2 pr-3">${L}</td><td class="py-2 pr-3">${P}%</td><td class="py-2 pr-3">${T}</td>`; return tr; }); mBody.replaceChildren(...rows); }
+  // Surface table
+  const surface=new Map();
+  for(const m of state.matches){ const key=m.surface||'Unknown'; const r=surface.get(key)||{W:0,L:0}; r[m.result]=(r[m.result]||0)+1; surface.set(key,r); }
+  const sBody=document.getElementById('surfaceBody'); if(sBody){ const rows=[...surface.keys()].sort().map(k=>{ const r=surface.get(k), W=r.W||0, L=r.L||0, T=W+L, P=T?Math.round(W*100/T):0; const tr=document.createElement('tr'); tr.innerHTML=`<td class="py-2 pr-3">${k}</td><td class="py-2 pr-3">${W}</td><td class="py-2 pr-3">${L}</td><td class="py-2 pr-3">${P}%</td><td class="py-2 pr-3">${T}</td>`; return tr; }); sBody.replaceChildren(...rows); }
+}
 
-  // Stats & Breakdowns
-  function renderStats(){
-    const t=state.matches.reduce((a,m)=>{ if(m.result==='W') a.W++; else if(m.result==='L') a.L++; return a; },{W:0,L:0});
-    const total=t.W+t.L; const pct= total? Math.round(t.W*100/total):0;
-    const wlEl=el('statWL'), wpEl=el('statWinPct'), totEl=el('statTotal');
-    if(wlEl) wlEl.textContent=`${t.W}–${t.L}`; if(wpEl) wpEl.textContent=pct+'%'; if(totEl) totEl.textContent=String(total);
-  }
-  function renderBreakdowns(){
-    // By Month
-    const monthMap=new Map();
-    for(const m of state.matches){ const k=(m.date||'').slice(0,7); if(!k) continue; const r=monthMap.get(k)||{W:0,L:0}; r[m.result]=(r[m.result]||0)+1; monthMap.set(k,r); }
-    const months=[...monthMap.keys()].sort(); const mBody=el('monthlyBody'); if(mBody){ const rows=months.map(k=>{ const r=monthMap.get(k), W=r.W||0, L=r.L||0, T=W+L, P=T?Math.round(W*100/T):0; const tr=document.createElement('tr'); tr.innerHTML=`<td class="py-2 pr-3">${k}</td><td class="py-2 pr-3">${W}</td><td class="py-2 pr-3">${L}</td><td class="py-2 pr-3">${P}%</td><td class="py-2 pr-3">${T}</td>`; return tr; }); mBody.replaceChildren(...rows); }
-    // By Surface
-    const surfMap=new Map();
-    for(const m of state.matches){ const k=m.surface||'Unknown'; const r=surfMap.get(k)||{W:0,L:0}; r[m.result]=(r[m.result]||0)+1; surfMap.set(k,r); }
-    const sBody=el('surfaceBody'); if(sBody){ const rows=[...surfMap.keys()].sort().map(k=>{ const r=surfMap.get(k), W=r.W||0, L=r.L||0, T=W+L, P=T?Math.round(W*100/T):0; const tr=document.createElement('tr'); tr.innerHTML=`<td class="py-2 pr-3">${k}</td><td class="py-2 pr-3">${W}</td><td class="py-2 pr-3">${L}</td><td class="py-2 pr-3">${P}%</td><td class="py-2 pr-3">${T}</td>`; return tr; }); sBody.replaceChildren(...rows); }
-  }
+// ---------- Notes Cloud ----------
+function renderNotes(){
+  const words={};
+  state.matches.forEach(m=>{ (m.notes||'').toLowerCase().split(/[^a-z0-9]+/).forEach(w=>{ if(w&&w.length>2){ words[w]=(words[w]||0)+1; } }); });
+  const entries=Object.entries(words).sort((a,b)=>b[1]-a[1]).slice(0,50);
+  const cloud=el('notesCloud'); cloud.innerHTML='';
+  if(!entries.length){ cloud.textContent='No notes yet.'; return; }
+  const max=entries[0][1];
+  entries.forEach(([w,c])=>{ const span=document.createElement('span'); span.textContent=w; span.style.fontSize=(0.8+(c/max)*1.4)+'rem'; span.className='mr-2'; cloud.appendChild(span); });
+}
 
-  // Notes Cloud
-  function renderNotes(){
-    const words={}; for(const m of state.matches){ const line=(m.notes||'').toLowerCase(); for(const w of line.split(/[^a-z0-9]+/)){ if(w&&w.length>2){ words[w]=(words[w]||0)+1; } } }
-    const entries=Object.entries(words).sort((a,b)=>b[1]-a[1]).slice(0,50); const cloud=el('notesCloud'); cloud.innerHTML=''; if(!entries.length){ cloud.textContent='No notes yet. Add notes to matches to generate the cloud.'; return; } const max=entries[0][1]; for(const [w,c] of entries){ const span=document.createElement('span'); const scale=.8 + (c/max)*1.4; span.textContent=w; span.style.fontSize=(0.9*scale)+'rem'; span.className='mr-2 inline-block'; cloud.appendChild(span); }
-  }
+// ---------- Export / Print ----------
+document.getElementById('btnExport').onclick=()=>{
+  const rows=[["date","opponent","result","score","surface","notes"]];
+  state.matches.forEach(m=>rows.push([m.date||'',m.opponent||'',m.result||'',m.score||'',m.surface||'',m.notes||'']));
+  const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='helmi-tennis.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),400);
+};
 
-  // Import / Export / PDF
-  document.getElementById('btnExport').addEventListener('click',()=>{ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='helmi-tennis-data.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),400); });
-  document.getElementById('fileImport').addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ state=JSON.parse(r.result); save(); init(); } catch{ alert('Invalid JSON'); } }; r.readAsText(f); e.target.value=''; });
-  document.getElementById('btnPDF').addEventListener('click',()=>window.print());
+document.getElementById('btnPrint').onclick=()=>window.print();
 
-  // Utils
-  function escapeHtml(s){ return String(s).replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
+// ---------- Wire up UI ----------
+document.getElementById('addPlayer').onclick=()=>{
+  const n=document.getElementById('playerInput').value.trim();
+  if(n && !state.players.includes(n)){ state.players.push(n); save(); renderPlayers(); }
+  document.getElementById('playerInput').value='';
+};
 
-  init();
-  </script>
+document.getElementById('addMatch').onclick=addMatch;
+
+function renderAll(){ renderPlayers(); renderMatches(); renderStats(); renderCharts(); renderBreakdowns(); renderNotes(); }
+
+// Boot
+(function init(){
+  document.getElementById('mDate').value=new Date().toISOString().slice(0,10);
+  renderAll();
+})();
+</script>
 </body>
 </html>
