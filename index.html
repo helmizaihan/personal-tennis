@@ -229,10 +229,26 @@
             unsubscribeMatches = onSnapshot(matchesQuery, (snapshot) => {
                 allMatches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 
+                // More robust sorting to prevent errors with invalid dates
                 allMatches.sort((a, b) => {
-                    const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date);
-                    const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date);
-                    return dateB - dateA;
+                    let dateA, dateB;
+                    try {
+                        // Handle Firestore Timestamps or string dates
+                        dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+                        // If date is invalid, use a fallback date
+                        if (isNaN(dateA.getTime())) dateA = new Date(0);
+                    } catch (e) {
+                        dateA = new Date(0); // Fallback for any parsing errors
+                    }
+
+                    try {
+                        dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+                        if (isNaN(dateB.getTime())) dateB = new Date(0);
+                    } catch (e) {
+                        dateB = new Date(0);
+                    }
+
+                    return dateB.getTime() - dateA.getTime();
                 });
                 
                 renderMatches(allMatches);
@@ -557,6 +573,7 @@
     </script>
 </body>
 </html>
+
 
 
 
