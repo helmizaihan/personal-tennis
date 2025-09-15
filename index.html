@@ -53,45 +53,76 @@
         </header>
 
         <main>
+            <!-- Stats Section -->
+            <div id="statsSection" class="bg-white p-6 rounded-2xl shadow-lg mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+                    <!-- Win/Loss Record -->
+                    <div class="text-center py-4 md:py-0">
+                        <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider">Win / Loss</h3>
+                        <p id="winLossRecord" class="text-3xl font-bold text-slate-800 mt-2">-</p>
+                    </div>
+                    <!-- Set Delta -->
+                    <div class="text-center py-4 md:py-0">
+                        <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider">Set Delta</h3>
+                        <p id="setDelta" class="text-3xl font-bold text-slate-800 mt-2">-</p>
+                    </div>
+                    <!-- Winning Set % -->
+                    <div class="text-center py-4 md:py-0">
+                        <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider">Set Win %</h3>
+                        <p id="setPercentage" class="text-3xl font-bold text-slate-800 mt-2">-</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Add Match Form -->
             <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
                 <h2 class="text-2xl font-semibold mb-4 text-slate-800">Add New Match</h2>
-                <form id="addMatchForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <form id="addMatchForm" class="grid grid-cols-1 md:grid-cols-6 gap-6">
                     <!-- Opponent -->
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-6">
                         <label for="opponent" class="block text-sm font-medium text-slate-600 mb-1">Opponent</label>
                         <input type="text" id="opponent" placeholder="e.g., Roger Federer" required class="form-input w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                     </div>
 
                     <!-- Date -->
-                    <div>
+                    <div class="md:col-span-2">
                         <label for="date" class="block text-sm font-medium text-slate-600 mb-1">Date</label>
                         <input type="date" id="date" required class="form-input w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                     </div>
 
                     <!-- Result -->
-                    <div>
+                    <div class="md:col-span-2">
                         <label for="result" class="block text-sm font-medium text-slate-600 mb-1">Result</label>
                         <select id="result" required class="form-select w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                             <option value="win">Win</option>
                             <option value="loss">Loss</option>
                         </select>
                     </div>
+                    
+                    <!-- Match Format -->
+                    <div class="md:col-span-2">
+                        <label for="matchFormat" class="block text-sm font-medium text-slate-600 mb-1">Format</label>
+                        <select id="matchFormat" required class="form-select w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                            <option value="single_set">Single Set</option>
+                            <option value="best_of_3">Best of 3 Sets</option>
+                            <option value="best_of_5">Best of 5 Sets</option>
+                        </select>
+                    </div>
 
                     <!-- Score -->
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-6">
                          <label for="score" class="block text-sm font-medium text-slate-600 mb-1">Score</label>
                         <input type="text" id="score" placeholder="e.g., 6-2, 7-5" required class="form-input w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
                     </div>
 
                     <!-- Notes -->
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-6">
                         <label for="notes" class="block text-sm font-medium text-slate-600 mb-1">Notes</label>
                         <textarea id="notes" rows="3" placeholder="e.g., Focused on my backhand slice..." class="form-input w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"></textarea>
                     </div>
 
                     <!-- Submit Button -->
-                    <div class="md:col-span-2 text-right">
+                    <div class="md:col-span-6 text-right">
                         <button type="submit" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105">
                             Add Match
                         </button>
@@ -108,6 +139,7 @@
                             <tr>
                                 <th scope="col" class="px-6 py-3">Date</th>
                                 <th scope="col" class="px-6 py-3">Opponent</th>
+                                <th scope="col" class="px-6 py-3">Format</th>
                                 <th scope="col" class="px-6 py-3">Result</th>
                                 <th scope="col" class="px-6 py-3">Score</th>
                                 <th scope="col" class="px-6 py-3 text-right">Actions</th>
@@ -117,6 +149,15 @@
                             <!-- Match rows will be programmatically inserted here -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Word Cloud Section -->
+            <div>
+                <h2 class="text-2xl font-semibold mb-4 text-slate-800">Notes Word Cloud</h2>
+                <div id="wordCloudContainer" class="bg-white p-6 rounded-2xl shadow-lg min-h-[200px] flex items-center justify-center flex-wrap gap-x-4 gap-y-2 text-center">
+                    <!-- Word cloud will be generated here -->
+                    <p id="wordCloudPlaceholder" class="text-slate-400">Add notes to your matches to see your word cloud.</p>
                 </div>
             </div>
         </main>
@@ -151,6 +192,12 @@
         // --- UI Elements ---
         const addMatchForm = document.getElementById('addMatchForm');
         const matchesTableBody = document.getElementById('matchesTableBody');
+        const winLossRecordEl = document.getElementById('winLossRecord');
+        const setDeltaEl = document.getElementById('setDelta');
+        const setPercentageEl = document.getElementById('setPercentage');
+        const wordCloudContainer = document.getElementById('wordCloudContainer');
+        const wordCloudPlaceholder = document.getElementById('wordCloudPlaceholder');
+
 
         // --- Authentication ---
         onAuthStateChanged(auth, async (user) => {
@@ -196,8 +243,111 @@
                 // Sort matches by date, newest first
                 matches.sort((a, b) => new Date(b.date) - new Date(a.date));
                 renderMatches(matches);
+                calculateAndRenderStats(matches);
+                generateAndRenderWordCloud(matches);
             }, (error) => {
                 console.error("Error fetching matches: ", error);
+            });
+        }
+
+
+        // --- Statistics Calculation ---
+        function calculateAndRenderStats(matches) {
+            let wins = 0;
+            let losses = 0;
+            let mySetsWon = 0;
+            let opponentSetsWon = 0;
+
+            if (matches.length === 0) {
+                winLossRecordEl.textContent = '0 - 0';
+                setDeltaEl.textContent = '0';
+                setPercentageEl.textContent = '0%';
+                return;
+            }
+
+            matches.forEach(match => {
+                if (match.result === 'win') {
+                    wins++;
+                } else {
+                    losses++;
+                }
+
+                if (match.score) {
+                    const sets = match.score.split(',');
+                    sets.forEach(set => {
+                        const scores = set.trim().split('-').map(s => parseInt(s, 10));
+                        if (scores.length === 2 && !isNaN(scores[0]) && !isNaN(scores[1])) {
+                             // Assuming the first score is always the player's
+                            if (scores[0] > scores[1]) {
+                                mySetsWon++;
+                            } else {
+                                opponentSetsWon++;
+                            }
+                        }
+                    });
+                }
+            });
+
+            const totalSets = mySetsWon + opponentSetsWon;
+            const percentage = totalSets > 0 ? ((mySetsWon / totalSets) * 100).toFixed(1) : 0;
+            const delta = mySetsWon - opponentSetsWon;
+
+            winLossRecordEl.innerHTML = `<span class="text-green-500">${wins}</span> - <span class="text-red-500">${losses}</span>`;
+            setDeltaEl.innerHTML = `<span class="${delta >= 0 ? 'text-green-500' : 'text-red-500'}">${delta > 0 ? '+' : ''}${delta}</span>`;
+            setPercentageEl.textContent = `${percentage}%`;
+        }
+
+        // --- Word Cloud Generation ---
+        function generateAndRenderWordCloud(matches) {
+            const stopWords = new Set(['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now']);
+            
+            const allNotes = matches
+                .map(match => match.notes || '')
+                .join(' ')
+                .toLowerCase()
+                .replace(/[^\w\s]/g, '') // remove punctuation
+                .split(/\s+/);
+
+            const wordCounts = {};
+            allNotes.forEach(word => {
+                if (word && !stopWords.has(word)) {
+                    wordCounts[word] = (wordCounts[word] || 0) + 1;
+                }
+            });
+
+            const sortedWords = Object.entries(wordCounts).sort((a, b) => b[1] - a[1]).slice(0, 30); // Top 30 words
+
+            wordCloudContainer.innerHTML = ''; // Clear previous cloud
+            
+            if (sortedWords.length === 0) {
+                 wordCloudContainer.appendChild(wordCloudPlaceholder);
+                 return;
+            }
+
+            const counts = sortedWords.map(entry => entry[1]);
+            const minCount = Math.min(...counts);
+            const maxCount = Math.max(...counts);
+
+            // Shuffle for better cloud appearance
+            sortedWords.sort(() => Math.random() - 0.5);
+
+            sortedWords.forEach(([word, count]) => {
+                const wordSpan = document.createElement('span');
+                wordSpan.textContent = word;
+
+                // Scale font size
+                const minFontSize = 14;
+                const maxFontSize = 36;
+                let fontSize = minFontSize;
+                if (maxCount > minCount) {
+                     fontSize = minFontSize + (maxFontSize - minFontSize) * ((count - minCount) / (maxCount - minCount));
+                } else if(sortedWords.length > 0) {
+                    fontSize = minFontSize + (maxFontSize - minFontSize) * 0.5;
+                }
+                
+                wordSpan.style.fontSize = `${fontSize}px`;
+                wordSpan.className = 'font-semibold text-indigo-600 opacity-80';
+                wordCloudContainer.appendChild(wordSpan);
             });
         }
 
@@ -209,7 +359,7 @@
             if (matches.length === 0) {
                 matchesTableBody.innerHTML = `
                     <tr class="bg-white">
-                        <td colspan="5" class="text-center py-10 px-6">
+                        <td colspan="6" class="text-center py-10 px-6">
                             <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
@@ -233,13 +383,21 @@
             const resultText = match.result.charAt(0).toUpperCase() + match.result.slice(1);
             const resultColorClass = match.result === 'win' ? 'text-green-800 bg-green-100' : 'text-red-800 bg-red-100';
 
-            const formattedDate = match.date ? new Date(match.date + 'T00:00:00').toLocaleDateString('en-US', {
+            const formatLabels = {
+                'single_set': 'Single Set',
+                'best_of_3': 'Best of 3',
+                'best_of_5': 'Best of 5'
+            };
+            const formatText = formatLabels[match.matchFormat] || 'N/A';
+
+            const formattedDate = match.date ? new Date(match.date + 'T00:00:00').toLocaleString('en-US', {
                 year: '2-digit', month: 'short', day: 'numeric'
             }) : 'No Date';
 
             row.innerHTML = `
                 <td class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">${formattedDate}</td>
                 <td class="px-6 py-4">${match.opponent}</td>
+                <td class="px-6 py-4 text-slate-600">${formatText}</td>
                 <td class="px-6 py-4">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${resultColorClass}">
                         ${resultText}
@@ -286,6 +444,7 @@
                 date: document.getElementById('date').value,
                 score: document.getElementById('score').value,
                 result: document.getElementById('result').value,
+                matchFormat: document.getElementById('matchFormat').value,
                 notes: document.getElementById('notes').value,
                 createdAt: new Date()
             };
@@ -302,4 +461,6 @@
     </script>
 </body>
 </html>
+
+
 
