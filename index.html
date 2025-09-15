@@ -6,26 +6,15 @@
     <title>Tennis Match Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <!-- A fallback, will use inline SVG -->
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
         .form-input, .form-select {
             transition: all 0.3s ease;
-        }
-        .match-card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
-        .match-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        .win {
-            border-left: 5px solid #4ade80; /* green-400 */
-        }
-        .loss {
-            border-left: 5px solid #f87171; /* red-400 */
         }
         /* Custom scrollbar for better aesthetics */
         ::-webkit-scrollbar {
@@ -131,8 +120,20 @@
             </div>
 
             <!-- Matches List -->
-            <div>
-                <h2 class="text-2xl font-semibold mb-4 text-slate-800">Match History</h2>
+            <div class="mt-8">
+                 <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
+                    <h2 class="text-2xl font-semibold text-slate-800">Match History</h2>
+                    <div id="exportButtons" class="flex space-x-2">
+                        <button id="exportCsvBtn" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-transform transform hover:scale-105 flex items-center space-x-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            <span>Google Sheets (CSV)</span>
+                        </button>
+                        <button id="exportPdfBtn" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-transform transform hover:scale-105 flex items-center space-x-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            <span>Save as PDF</span>
+                        </button>
+                    </div>
+                </div>
                 <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
                     <table class="w-full text-sm text-left text-slate-500">
                         <thead class="text-xs text-slate-700 uppercase bg-slate-50">
@@ -153,7 +154,7 @@
             </div>
 
             <!-- Word Cloud Section -->
-            <div>
+            <div class="mt-8">
                 <h2 class="text-2xl font-semibold mb-4 text-slate-800">Notes Word Cloud</h2>
                 <div id="wordCloudContainer" class="bg-white p-6 rounded-2xl shadow-lg min-h-[200px] flex items-center justify-center flex-wrap gap-x-4 gap-y-2 text-center">
                     <!-- Word cloud will be generated here -->
@@ -170,7 +171,6 @@
         import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase Configuration ---
-        // These global variables are provided by the environment.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-tennis-app';
         let firebaseConfig;
         try {
@@ -187,7 +187,8 @@
 
         let userId = null;
         let matchesCollectionRef = null;
-        let unsubscribeMatches = null; // To detach the listener when auth state changes
+        let unsubscribeMatches = null;
+        let allMatches = []; // To store matches for export functions
 
         // --- UI Elements ---
         const addMatchForm = document.getElementById('addMatchForm');
@@ -197,6 +198,8 @@
         const setPercentageEl = document.getElementById('setPercentage');
         const wordCloudContainer = document.getElementById('wordCloudContainer');
         const wordCloudPlaceholder = document.getElementById('wordCloudPlaceholder');
+        const exportCsvBtn = document.getElementById('exportCsvBtn');
+        const exportPdfBtn = document.getElementById('exportPdfBtn');
 
 
         // --- Authentication ---
@@ -210,14 +213,12 @@
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     try {
                         await signInWithCustomToken(auth, __initial_auth_token);
-                        console.log("Signed in with custom token.");
                     } catch (error) {
                         console.error("Custom token sign-in failed, trying anonymous:", error);
                         await signInAnonymously(auth);
                     }
                 } else {
                     await signInAnonymously(auth);
-                    console.log("Signed in anonymously.");
                 }
             }
         });
@@ -226,33 +227,37 @@
         function setupFirestoreListeners() {
             if (!userId) return;
 
-            // Detach any existing listener
-            if (unsubscribeMatches) {
-                unsubscribeMatches();
-            }
+            if (unsubscribeMatches) unsubscribeMatches();
 
             const collectionPath = `artifacts/${appId}/users/${userId}/matches`;
             matchesCollectionRef = collection(db, collectionPath);
             const matchesQuery = query(matchesCollectionRef);
 
             unsubscribeMatches = onSnapshot(matchesQuery, (snapshot) => {
-                const matches = [];
+                allMatches = []; // Clear and repopulate
                 snapshot.forEach((doc) => {
-                    matches.push({ id: doc.id, ...doc.data() });
+                    allMatches.push({ id: doc.id, ...doc.data() });
                 });
-                // Sort matches by date, newest first
-                matches.sort((a, b) => new Date(b.date) - new Date(a.date));
-                renderMatches(matches);
-                calculateAndRenderStats(matches);
-                generateAndRenderWordCloud(matches);
+                
+                allMatches.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                renderMatches(allMatches);
+                calculateAndRenderStats(allMatches);
+                generateAndRenderWordCloud(allMatches);
+
+                // Enable/disable export buttons based on whether there's data
+                const hasMatches = allMatches.length > 0;
+                exportCsvBtn.disabled = !hasMatches;
+                exportPdfBtn.disabled = !hasMatches;
+
             }, (error) => {
                 console.error("Error fetching matches: ", error);
             });
         }
 
-
         // --- Statistics Calculation ---
         function calculateAndRenderStats(matches) {
+            // ... (rest of the function is unchanged)
             let wins = 0;
             let losses = 0;
             let mySetsWon = 0;
@@ -299,6 +304,7 @@
 
         // --- Word Cloud Generation ---
         function generateAndRenderWordCloud(matches) {
+            // ... (rest of the function is unchanged)
             const stopWords = new Set(['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now']);
             
             const allNotes = matches
@@ -328,14 +334,12 @@
             const minCount = Math.min(...counts);
             const maxCount = Math.max(...counts);
 
-            // Shuffle for better cloud appearance
             sortedWords.sort(() => Math.random() - 0.5);
 
             sortedWords.forEach(([word, count]) => {
                 const wordSpan = document.createElement('span');
                 wordSpan.textContent = word;
 
-                // Scale font size
                 const minFontSize = 14;
                 const maxFontSize = 36;
                 let fontSize = minFontSize;
@@ -354,7 +358,8 @@
 
         // --- Rendering Logic ---
         function renderMatches(matches) {
-            matchesTableBody.innerHTML = ''; // Clear the table body
+             // ... (rest of the function is unchanged)
+            matchesTableBody.innerHTML = ''; 
 
             if (matches.length === 0) {
                 matchesTableBody.innerHTML = `
@@ -377,6 +382,7 @@
         }
 
         function createMatchRow(match) {
+             // ... (rest of the function is unchanged)
             const row = document.createElement('tr');
             row.className = 'bg-white border-b hover:bg-slate-50 transition-colors';
 
@@ -412,14 +418,11 @@
                 </td>
             `;
 
-            // Add delete functionality
             const deleteButton = row.querySelector('.delete-btn');
             deleteButton.addEventListener('click', async () => {
                 const matchId = deleteButton.getAttribute('data-id');
-                // Removed confirm() as per instructions for iframe compatibility.
                 try {
                    await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/matches`, matchId));
-                   console.log("Match deleted successfully");
                 } catch(error) {
                     console.error("Error deleting match: ", error);
                 }
@@ -431,11 +434,11 @@
 
         // --- Event Listeners ---
         addMatchForm.addEventListener('submit', async (e) => {
+             // ... (rest of the function is unchanged)
             e.preventDefault();
 
             if (!userId || !matchesCollectionRef) {
                 console.error("User not authenticated or Firestore not ready.");
-                // Optionally show an error message to the user
                 return;
             }
 
@@ -451,16 +454,70 @@
 
             try {
                 const docRef = await addDoc(matchesCollectionRef, newMatch);
-                console.log("Document written with ID: ", docRef.id);
                 addMatchForm.reset();
             } catch (error) {
                 console.error("Error adding document: ", error);
             }
         });
 
+        // --- EXPORT FUNCTIONS ---
+        function exportToCSV() {
+            const headers = ['Date', 'Opponent', 'Format', 'Result', 'Score', 'Notes'];
+            const formatLabels = {'single_set': 'Single Set', 'best_of_3': 'Best of 3', 'best_of_5': 'Best of 5'};
+
+            const rows = allMatches.map(match => [
+                match.date,
+                match.opponent,
+                formatLabels[match.matchFormat] || 'N/A',
+                match.result,
+                match.score,
+                `"${(match.notes || '').replace(/"/g, '""')}"` // Handle quotes in notes
+            ]);
+
+            let csvContent = "data:text/csv;charset=utf-8," 
+                + headers.join(",") + "\n" 
+                + rows.map(e => e.join(",")).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "helmis_tennis_matches.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function saveAsPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const head = [['Date', 'Opponent', 'Format', 'Result', 'Score']];
+            const formatLabels = {'single_set': 'Single Set', 'best_of_3': 'Best of 3', 'best_of_5': 'Best of 5'};
+            const body = allMatches.map(match => [
+                match.date,
+                match.opponent,
+                formatLabels[match.matchFormat] || 'N/A',
+                match.result.charAt(0).toUpperCase() + match.result.slice(1),
+                match.score
+            ]);
+
+            doc.autoTable({
+                head: head,
+                body: body,
+                didDrawPage: function (data) {
+                    doc.setFontSize(20);
+                    doc.text("Helmi's Tennis Matches", data.settings.margin.left, 15);
+                },
+                startY: 20
+            });
+
+            doc.save('helmis_tennis_matches.pdf');
+        }
+
+        exportCsvBtn.addEventListener('click', exportToCSV);
+        exportPdfBtn.addEventListener('click', saveAsPDF);
+
     </script>
 </body>
 </html>
-
-
 
