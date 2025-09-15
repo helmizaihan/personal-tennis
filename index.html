@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Personal Tennis — Simple Tracker</title>
+  <title>Helmi’s Tennis Matches</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,13 +13,8 @@
   </script>
   <style>
     :root{
-      --bg: #f7fafc; --card:#ffffff; --text:#111827; --muted:#6b7280; --border:#e5e7eb; --brand:#2563eb; --brand-600:#2563eb; --brand-700:#1d4ed8;
-      --radius: 14px;
+      --bg: #f7fafc; --card:#ffffff; --text:#111827; --muted:#6b7280; --border:#e5e7eb; --brand:#2563eb; --brand-600:#2563eb; --brand-700:#1d4ed8; --radius: 14px;
     }
-    [data-theme="forest"]{ --brand:#059669; --brand-600:#059669; --brand-700:#047857; }
-    [data-theme="clay"]  { --brand:#ea580c; --brand-600:#ea580c; --brand-700:#c2410c; }
-    [data-theme="night"] { --bg:#0b1220; --card:#0f172a; --text:#e5e7eb; --muted:#94a3b8; --border:#1f2937; --brand:#60a5fa; --brand-600:#60a5fa; --brand-700:#3b82f6; }
-
     html, body { height: 100%; font-family: 'Inter', ui-sans-serif, system-ui; background: var(--bg); color: var(--text); }
     .card { background: var(--card); border-radius: var(--radius); box-shadow: 0 10px 30px rgba(0,0,0,.05); border: 1px solid var(--border); }
     .btn { display:inline-flex; align-items:center; gap:.5rem; border-radius: 12px; border:1px solid var(--border); background: var(--card); padding:.5rem .75rem; font-size:.9rem; }
@@ -36,18 +31,11 @@
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-xl bg-blue-600 text-white grid place-content-center text-lg">🎾</div>
         <div>
-          <h1 class="text-xl sm:text-2xl font-bold">Personal Tennis — Simple Tracker</h1>
-          <p class="text-xs text-gray-600">Single HTML file, LocalStorage, GitHub Pages ready.</p>
+          <h1 class="text-xl sm:text-2xl font-bold">Helmi’s Tennis Matches</h1>
+          <p class="text-xs text-gray-600">Single HTML file • LocalStorage • Print to PDF</p>
         </div>
       </div>
       <div class="flex flex-wrap gap-2 items-center">
-        <label class="text-xs text-gray-500">Theme</label>
-        <select id="themePick" class="field max-w-[160px]">
-          <option value="default">Classic (Blue)</option>
-          <option value="forest">Forest (Green)</option>
-          <option value="clay">Clay (Orange)</option>
-          <option value="night">Night</option>
-        </select>
         <button id="btnExport" class="btn" title="Download JSON">Export</button>
         <label class="btn cursor-pointer" title="Import JSON"><input id="fileImport" type="file" accept=".json" class="hidden"/>Import</label>
         <button id="btnPDF" class="btn" title="Print / Save as PDF">Save PDF</button>
@@ -56,12 +44,12 @@
   </header>
 
   <main class="max-w-6xl mx-auto px-4 py-6 grid lg:grid-cols-3 gap-6">
-    <!-- Left: Players & Settings -->
+    <!-- Left: Opponents & Event -->
     <aside class="lg:col-span-1 space-y-6">
       <section class="card p-5">
-        <h2 class="text-lg font-semibold mb-3">Players</h2>
+        <h2 class="text-lg font-semibold mb-3">Opponents</h2>
         <div class="flex gap-2 mb-3">
-          <input id="playerInput" class="field" placeholder="Add player name" />
+          <input id="playerInput" class="field" placeholder="Add opponent name" />
           <button id="addPlayer" class="btn-primary px-4 rounded-xl">Add</button>
         </div>
         <div class="text-xs text-gray-600 mb-2">Tap a name to set as opponent for quick entry.</div>
@@ -127,7 +115,7 @@
               <option value="L">Loss</option>
             </select>
           </div>
-          <div class>
+          <div>
             <label class="text-xs font-medium text-gray-600">Score</label>
             <input id="mScore" class="field" placeholder="e.g., 6-4; 3-6; 10-8" />
           </div>
@@ -136,6 +124,10 @@
             <select id="mSurface" class="field">
               <option>Hard</option><option>Clay</option><option>Grass</option><option>Carpet</option>
             </select>
+          </div>
+          <div class="md:col-span-2 lg:col-span-3">
+            <label class="text-xs font-medium text-gray-600">Notes</label>
+            <input id="mNotes" class="field" placeholder="e.g., wind, cramps, strings, strategy" />
           </div>
         </div>
         <div class="mt-4 flex gap-2">
@@ -159,12 +151,19 @@
                 <th class="py-2 pr-3">Result</th>
                 <th class="py-2 pr-3">Score</th>
                 <th class="py-2 pr-3">Surface</th>
+                <th class="py-2 pr-3">Notes</th>
                 <th class="py-2">Actions</th>
               </tr>
             </thead>
             <tbody id="matchBody" class="divide-y"></tbody>
           </table>
         </div>
+      </section>
+
+      <section class="card p-5">
+        <h2 class="text-lg font-semibold mb-2">Notes Cloud</h2>
+        <div class="text-xs text-gray-600 mb-2">Built from all match notes. Larger words appear more often.</div>
+        <div id="notesCloud" class="min-h-[96px]"></div>
       </section>
     </section>
   </main>
@@ -173,8 +172,8 @@
 
   <script>
   // ---------- Storage ----------
-  const LS_KEY = 'tennis_simple_v1';
-  const defaultState = { eventName:'', eventVenue:'', theme:'default', players:['Helmi'], matches:[] };
+  const LS_KEY = 'helmi_tennis_v1';
+  const defaultState = { eventName:'', eventVenue:'', players:[], matches:[] };
   let state = load();
   function load(){ try { return JSON.parse(localStorage.getItem(LS_KEY)) || structuredClone(defaultState);} catch { return structuredClone(defaultState);} }
   function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
@@ -190,6 +189,7 @@
   const mResult = el('mResult');
   const mScore = el('mScore');
   const mSurface = el('mSurface');
+  const mNotes = el('mNotes');
   const addMatchBtn = el('addMatch');
   const matchBody = el('matchBody');
   const matchCount = el('matchCount');
@@ -200,17 +200,16 @@
 
   function init(){
     // hydrate
-    document.documentElement.setAttribute('data-theme', state.theme||'default');
-    el('themePick').value = state.theme||'default';
     eventName.value = state.eventName || '';
     eventVenue.value = state.eventVenue || '';
-    if(state.players.length && !state.players.includes('Helmi')) state.players.unshift('Helmi');
     mDate.value = new Date().toISOString().slice(0,10);
     renderPlayers();
     renderMatches();
+    renderNotes();
+    renderLeague();
   }
 
-  // ---------- Players ----------
+  // ---------- Opponents ----------
   function renderPlayers(){
     playerList.innerHTML = '';
     const names = [...state.players].sort((a,b)=>a.localeCompare(b));
@@ -243,11 +242,11 @@
     const btn = e.target.closest('button'); if(!btn) return;
     if(btn.dataset.setOpp){ mOpponent.value = btn.dataset.setOpp; return; }
     if(btn.dataset.rename){
-      const old = btn.dataset.rename; const neo = prompt('Rename player', old);
+      const old = btn.dataset.rename; const neo = prompt('Rename opponent', old);
       if(neo && neo.trim()){
         state.players = state.players.map(p=> p===old? neo.trim(): p);
         for(const m of state.matches){ if(m.opponent===old) m.opponent = neo.trim(); }
-        save(); renderPlayers(); renderMatches();
+        save(); renderPlayers(); renderMatches(); renderLeague();
       }
     }
     if(btn.dataset.remove){
@@ -280,12 +279,14 @@
       format: +mFormat.value,
       result: mResult.value,
       score: mScore.value.trim(),
-      surface: mSurface.value
+      surface: mSurface.value,
+      notes: mNotes.value.trim()
     };
     if(!m.opponent){ alert('Pick an opponent'); return; }
     state.matches.push(m); save();
-    el('savedMsg').classList.remove('hidden'); setTimeout(()=>el('savedMsg').classList.add('hidden'), 1200);
-    mScore.value=''; renderMatches(); renderLeague();
+    document.getElementById('savedMsg').classList.remove('hidden'); setTimeout(()=>document.getElementById('savedMsg').classList.add('hidden'), 1200);
+    mScore.value=''; mNotes.value='';
+    renderMatches(); renderLeague(); renderNotes();
   }
   addMatchBtn.addEventListener('click', addMatch);
 
@@ -303,6 +304,7 @@
         <td class="py-2 pr-3">${m.result==='W' ? '<span class=\'text-green-700\'>W</span>' : '<span class=\'text-red-700\'>L</span>'}</td>
         <td class="py-2 pr-3">${escapeHtml(m.score)}</td>
         <td class="py-2 pr-3">${escapeHtml(m.surface)}</td>
+        <td class="py-2 pr-3 max-w-[240px] truncate" title="${escapeHtml(m.notes||'')}">${escapeHtml(m.notes||'')}</td>
         <td class="py-2 flex gap-2">
           <button class="btn text-xs" data-edit="${m.id}">Edit</button>
           <button class="btn text-xs" data-del="${m.id}">Delete</button>
@@ -316,31 +318,31 @@
     const btn = e.target.closest('button'); if(!btn) return;
     const id = btn.dataset.edit || btn.dataset.del; const idx = state.matches.findIndex(x=>x.id===id);
     if(idx<0) return;
-    if(btn.dataset.del){ if(confirm('Delete this match?')){ state.matches.splice(idx,1); save(); renderMatches(); renderLeague(); } return; }
+    if(btn.dataset.del){ if(confirm('Delete this match?')){ state.matches.splice(idx,1); save(); renderMatches(); renderLeague(); renderNotes(); } return; }
     if(btn.dataset.edit){
       const m = state.matches[idx];
-      const raw = prompt('Edit (date,opponent,format,result,score,surface)', `${m.date},${m.opponent},${m.format},${m.result},${m.score},${m.surface}`);
+      const raw = prompt('Edit (date,opponent,format,result,score,surface,notes)', `${m.date},${m.opponent},${m.format},${m.result},${m.score},${m.surface},${m.notes||''}`);
       if(raw){
-        const p = raw.split(','); if(p.length>=6){ [m.date,m.opponent,m.format,m.result,m.score,m.surface] = [p[0],p[1],+p[2],p[3],p[4],p[5]]; save(); renderMatches(); renderLeague(); }
+        const p = raw.split(','); if(p.length>=7){ [m.date,m.opponent,m.format,m.result,m.score,m.surface,m.notes] = [p[0],p[1],+p[2],p[3],p[4],p[5],p.slice(6).join(',')]; save(); renderMatches(); renderLeague(); renderNotes(); }
       }
     }
   });
 
-  // ---------- League ----------
+  // ---------- League (Helmi fixed) ----------
   function computeLeague(){
     const table = new Map();
-    for(const p of state.players){ table.set(p,{P:0,W:0,L:0,pts:0}); }
+    table.set('Helmi',{P:0,W:0,L:0,pts:0});
+    for(const opp of state.players){ if(!table.has(opp)) table.set(opp,{P:0,W:0,L:0,pts:0}); }
     for(const m of state.matches){
-      if(!table.has('Helmi')) table.set('Helmi',{P:0,W:0,L:0,pts:0});
-      if(!table.has(m.opponent)) table.set(m.opponent,{P:0,W:0,L:0,pts:0});
-      const H = table.get('Helmi'); const O = table.get(m.opponent);
+      const opp = m.opponent; if(!table.has(opp)) table.set(opp,{P:0,W:0,L:0,pts:0});
+      const H = table.get('Helmi'); const O = table.get(opp);
       H.P++; O.P++;
       if(m.result==='W'){ H.W++; H.pts+=3; O.L++; } else { O.W++; O.pts+=3; H.L++; }
     }
     return [...table.entries()].map(([player,v])=>({player,...v})).sort((a,b)=> b.pts-a.pts || b.W-a.W || a.player.localeCompare(b.player));
   }
   function renderLeague(){
-    const body = el('leagueBody');
+    const body = document.getElementById('leagueBody');
     const rows = [];
     for(const r of computeLeague()){
       const tr = document.createElement('tr');
@@ -350,25 +352,43 @@
     body.replaceChildren(...rows);
   }
 
+  // ---------- Notes Cloud ----------
+  function renderNotes(){
+    const words = {};
+    for(const m of state.matches){
+      const line = (m.notes||'').toLowerCase();
+      for(const w of line.split(/[^a-z0-9]+/)){ if(w && w.length>2){ words[w] = (words[w]||0)+1; } }
+    }
+    const entries = Object.entries(words).sort((a,b)=>b[1]-a[1]).slice(0,50);
+    const cloud = document.getElementById('notesCloud');
+    cloud.innerHTML='';
+    if(!entries.length){ cloud.textContent = 'No notes yet. Add notes to matches to generate the cloud.'; return; }
+    const max = entries[0][1];
+    for(const [w,c] of entries){
+      const span = document.createElement('span');
+      const scale = 0.8 + (c/max)*1.4; // 0.8x to 2.2x
+      span.textContent = w;
+      span.style.fontSize = (0.9*scale)+'rem';
+      span.className = 'mr-2 inline-block';
+      cloud.appendChild(span);
+    }
+  }
+
   // ---------- Import/Export & PDF ----------
-  el('btnExport').addEventListener('click', ()=>{
+  document.getElementById('btnExport').addEventListener('click', ()=>{
     const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='tennis-data.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 400);
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='helmi-tennis-data.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 400);
   });
-  el('fileImport').addEventListener('change', (e)=>{
-    const f = e.target.files?.[0]; if(!f) return; const r = new FileReader(); r.onload = ()=>{ try { state = JSON.parse(r.result); save(); init(); renderLeague(); } catch { alert('Invalid JSON'); } }; r.readAsText(f); e.target.value='';
+  document.getElementById('fileImport').addEventListener('change', (e)=>{
+    const f = e.target.files?.[0]; if(!f) return; const r = new FileReader(); r.onload = ()=>{ try { state = JSON.parse(r.result); save(); init(); } catch { alert('Invalid JSON'); } }; r.readAsText(f); e.target.value='';
   });
-  el('btnPDF').addEventListener('click', ()=> window.print());
-  // Theme
-  el('themePick').addEventListener('change', ()=>{ state.theme = el('themePick').value; save(); document.documentElement.setAttribute('data-theme', state.theme); });
-('click', ()=> window.print());
+  document.getElementById('btnPDF').addEventListener('click', ()=> window.print());
 
   // ---------- Utils ----------
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, (c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
 
   // ---------- Boot ----------
   init();
-  renderLeague();
   </script>
 </body>
 </html>
