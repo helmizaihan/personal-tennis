@@ -1,578 +1,374 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tennis Match Tracker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- jsPDF for PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .form-input, .form-select {
-            transition: all 0.3s ease;
-        }
-        /* Custom scrollbar for better aesthetics */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #94a3b8;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Personal Tennis — Simple Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'] } } } };
+  </script>
+  <style>
+    :root{
+      --bg: #f7fafc; --card:#ffffff; --text:#111827; --muted:#6b7280; --border:#e5e7eb; --brand:#2563eb; --brand-600:#2563eb; --brand-700:#1d4ed8;
+      --radius: 14px;
+    }
+    [data-theme="forest"]{ --brand:#059669; --brand-600:#059669; --brand-700:#047857; }
+    [data-theme="clay"]  { --brand:#ea580c; --brand-600:#ea580c; --brand-700:#c2410c; }
+    [data-theme="night"] { --bg:#0b1220; --card:#0f172a; --text:#e5e7eb; --muted:#94a3b8; --border:#1f2937; --brand:#60a5fa; --brand-600:#60a5fa; --brand-700:#3b82f6; }
+
+    html, body { height: 100%; font-family: 'Inter', ui-sans-serif, system-ui; background: var(--bg); color: var(--text); }
+    .card { background: var(--card); border-radius: var(--radius); box-shadow: 0 10px 30px rgba(0,0,0,.05); border: 1px solid var(--border); }
+    .btn { display:inline-flex; align-items:center; gap:.5rem; border-radius: 12px; border:1px solid var(--border); background: var(--card); padding:.5rem .75rem; font-size:.9rem; }
+    .btn:hover{ background: rgba(0,0,0,.02); }
+    .btn-primary { background: var(--brand-600); color:#fff; border-color: transparent; }
+    .btn-primary:hover{ background: var(--brand-700); }
+    .field { width:100%; border-radius: 12px; border:1px solid var(--border); padding:.5rem .75rem; }
+  </style>
 </head>
-<body class="bg-slate-100 text-slate-800">
-
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
-        <!-- Header -->
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-slate-900">Helmi’s Tennis Matches</h1>
-            <p class="text-slate-500 mt-2">Log your every serve, volley, and victory.</p>
-        </header>
-
-        <main>
-            <!-- Stats Section -->
-            <div id="statsSection" class="bg-white p-6 rounded-2xl shadow-lg mb-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200">
-                    <!-- Win/Loss Record -->
-                    <div class="text-center py-4 md:py-0">
-                        <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider">Win / Loss</h3>
-                        <p id="winLossRecord" class="text-3xl font-bold text-slate-800 mt-2">-</p>
-                    </div>
-                    <!-- Win % -->
-                    <div class="text-center py-4 md:py-0">
-                        <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider">Win %</h3>
-                        <p id="setPercentage" class="text-3xl font-bold text-slate-800 mt-2">-</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Add Match Form -->
-            <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
-                <h2 class="text-2xl font-semibold mb-4 text-slate-800">Add New Match</h2>
-                <form id="addMatchForm" class="grid grid-cols-1 md:grid-cols-6 gap-6">
-                    <!-- Opponent -->
-                    <div class="md:col-span-6">
-                        <label for="opponent" class="block text-sm font-medium text-slate-600 mb-1">Opponent</label>
-                        <input type="text" id="opponent" placeholder="e.g., Roger Federer" required class="form-input w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-                    </div>
-
-                    <!-- Date -->
-                    <div class="md:col-span-2">
-                        <label for="date" class="block text-sm font-medium text-slate-600 mb-1">Date</label>
-                        <input type="date" id="date" required class="form-input w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-                    </div>
-
-                    <!-- Result -->
-                    <div class="md:col-span-2">
-                        <label for="result" class="block text-sm font-medium text-slate-600 mb-1">Result</label>
-                        <select id="result" required class="form-select w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-                            <option value="win">Win</option>
-                            <option value="loss">Loss</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Match Format -->
-                    <div class="md:col-span-2">
-                        <label for="matchFormat" class="block text-sm font-medium text-slate-600 mb-1">Format</label>
-                        <select id="matchFormat" required class="form-select w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-                            <option value="single_set">Single Set</option>
-                            <option value="best_of_3">Best of 3 Sets</option>
-                            <option value="best_of_5">Best of 5 Sets</option>
-                        </select>
-                    </div>
-
-                    <!-- Score -->
-                    <div class="md:col-span-6">
-                         <label for="score" class="block text-sm font-medium text-slate-600 mb-1">Score</label>
-                        <input type="text" id="score" placeholder="e.g., 6-2, 7-5" required class="form-input w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-                    </div>
-
-                    <!-- Notes -->
-                    <div class="md:col-span-6">
-                        <label for="notes" class="block text-sm font-medium text-slate-600 mb-1">Notes</label>
-                        <textarea id="notes" rows="3" placeholder="e.g., Focused on my backhand slice..." class="form-input w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"></textarea>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <div class="md:col-span-6 text-right">
-                        <button id="addMatchBtn" type="submit" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 transform hover:scale-105 disabled:bg-indigo-400 disabled:cursor-not-allowed" disabled>
-                            Loading...
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Matches List -->
-            <div class="mt-8">
-                 <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
-                    <h2 class="text-2xl font-semibold text-slate-800">Match History</h2>
-                    <div id="exportButtons" class="flex space-x-2">
-                        <button id="exportCsvBtn" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-transform transform hover:scale-105 flex items-center space-x-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            <span>Google Sheets (CSV)</span>
-                        </button>
-                        <button id="exportPdfBtn" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-transform transform hover:scale-105 flex items-center space-x-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            <span>Save as PDF</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-                    <table class="w-full text-sm text-left text-slate-500">
-                        <thead class="text-xs text-slate-700 uppercase bg-slate-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3">Date</th>
-                                <th scope="col" class="px-6 py-3">Opponent</th>
-                                <th scope="col" class="px-6 py-3">Format</th>
-                                <th scope="col" class="px-6 py-3">Result</th>
-                                <th scope="col" class="px-6 py-3">Score</th>
-                                <th scope="col" class="px-6 py-3 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="matchesTableBody">
-                            <!-- Match rows will be programmatically inserted here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Word Cloud Section -->
-            <div class="mt-8">
-                <h2 class="text-2xl font-semibold mb-4 text-slate-800">Notes Word Cloud</h2>
-                <div id="wordCloudContainer" class="bg-white p-6 rounded-2xl shadow-lg min-h-[200px] flex items-center justify-center flex-wrap gap-x-4 gap-y-2 text-center">
-                    <!-- Word cloud will be generated here -->
-                    <p id="wordCloudPlaceholder" class="text-slate-400">Add notes to your matches to see your word cloud.</p>
-                </div>
-            </div>
-        </main>
+<body class="bg-gray-50 text-gray-900">
+  <!-- Header -->
+  <header class="sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/70 bg-white/90 border-b border-gray-200">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-blue-600 text-white grid place-content-center text-lg">🎾</div>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-bold">Personal Tennis — Simple Tracker</h1>
+          <p class="text-xs text-gray-600">Single HTML file, LocalStorage, GitHub Pages ready.</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 items-center">
+        <label class="text-xs text-gray-500">Theme</label>
+        <select id="themePick" class="field max-w-[160px]">
+          <option value="default">Classic (Blue)</option>
+          <option value="forest">Forest (Green)</option>
+          <option value="clay">Clay (Orange)</option>
+          <option value="night">Night</option>
+        </select>
+        <button id="btnExport" class="btn" title="Download JSON">Export</button>
+        <label class="btn cursor-pointer" title="Import JSON"><input id="fileImport" type="file" accept=".json" class="hidden"/>Import</label>
+        <button id="btnPDF" class="btn" title="Print / Save as PDF">Save PDF</button>
+      </div>
     </div>
+  </header>
 
-    <script type="module">
-        // --- Firebase Imports ---
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  <main class="max-w-6xl mx-auto px-4 py-6 grid lg:grid-cols-3 gap-6">
+    <!-- Left: Players & Settings -->
+    <aside class="lg:col-span-1 space-y-6">
+      <section class="card p-5">
+        <h2 class="text-lg font-semibold mb-3">Players</h2>
+        <div class="flex gap-2 mb-3">
+          <input id="playerInput" class="field" placeholder="Add player name" />
+          <button id="addPlayer" class="btn-primary px-4 rounded-xl">Add</button>
+        </div>
+        <div class="text-xs text-gray-600 mb-2">Tap a name to set as opponent for quick entry.</div>
+        <ul id="playerList" class="space-y-1"></ul>
+      </section>
 
-        // --- Firebase Configuration ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-tennis-app';
-        let firebaseConfig;
-        try {
-            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "DEMO", authDomain: "DEMO", projectId: "DEMO" };
-        } catch (e) {
-            console.error("Could not parse Firebase config:", e);
-            firebaseConfig = { apiKey: "DEMO", authDomain: "DEMO", projectId: "DEMO" };
-        }
+      <section class="card p-5">
+        <h2 class="text-lg font-semibold mb-3">Event Info</h2>
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs font-medium text-gray-600">Event / League Name</label>
+            <input id="eventName" class="field" placeholder="e.g., Friday Night Singles" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-600">Venue</label>
+            <input id="eventVenue" class="field" placeholder="e.g., Kiara Park Courts" />
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="saveEvent" class="btn-primary px-4 rounded-xl">Save</button>
+            <span id="eventSaved" class="text-xs text-green-700 hidden">Saved</span>
+          </div>
+        </div>
+      </section>
 
-        // --- Firebase Initialization ---
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+      <section class="card p-5">
+        <h2 class="text-lg font-semibold mb-3">League Table</h2>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="text-left text-gray-600 border-b">
+              <tr><th class="py-2 pr-3">Player</th><th class="py-2 pr-3">P</th><th class="py-2 pr-3">W</th><th class="py-2 pr-3">L</th><th class="py-2 pr-3">Pts</th></tr>
+            </thead>
+            <tbody id="leagueBody" class="divide-y"></tbody>
+          </table>
+        </div>
+      </section>
+    </aside>
 
-        let userId = null;
-        let matchesCollectionRef = null;
-        let unsubscribeMatches = null;
-        let allMatches = [];
+    <!-- Right: Match Entry & History -->
+    <section class="lg:col-span-2 space-y-6">
+      <section class="card p-5">
+        <h2 class="text-lg font-semibold mb-4">Add Match</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div>
+            <label class="text-xs font-medium text-gray-600">Date</label>
+            <input id="mDate" type="date" class="field" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-600">Opponent</label>
+            <select id="mOpponent" class="field"></select>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-600">Format</label>
+            <select id="mFormat" class="field">
+              <option value="1">Single Set</option>
+              <option value="3">Best of 3</option>
+              <option value="5">Best of 5</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-600">Result</label>
+            <select id="mResult" class="field">
+              <option value="W">Win</option>
+              <option value="L">Loss</option>
+            </select>
+          </div>
+          <div class>
+            <label class="text-xs font-medium text-gray-600">Score</label>
+            <input id="mScore" class="field" placeholder="e.g., 6-4; 3-6; 10-8" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-600">Surface</label>
+            <select id="mSurface" class="field">
+              <option>Hard</option><option>Clay</option><option>Grass</option><option>Carpet</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-4 flex gap-2">
+          <button id="addMatch" class="btn-primary px-4 rounded-xl">Add Match</button>
+          <span id="savedMsg" class="text-sm text-green-700 hidden">Saved</span>
+        </div>
+      </section>
 
-        // --- UI Elements ---
-        const addMatchForm = document.getElementById('addMatchForm');
-        const addMatchBtn = document.getElementById('addMatchBtn');
-        const matchesTableBody = document.getElementById('matchesTableBody');
-        const winLossRecordEl = document.getElementById('winLossRecord');
-        const setPercentageEl = document.getElementById('setPercentage');
-        const wordCloudContainer = document.getElementById('wordCloudContainer');
-        const wordCloudPlaceholder = document.getElementById('wordCloudPlaceholder');
-        const exportCsvBtn = document.getElementById('exportCsvBtn');
-        const exportPdfBtn = document.getElementById('exportPdfBtn');
+      <section class="card p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-lg font-semibold">Match History</h2>
+          <div class="text-sm text-gray-600"><span id="matchCount">0</span> matches</div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="text-left text-gray-600 border-b">
+              <tr>
+                <th class="py-2 pr-3">Date</th>
+                <th class="py-2 pr-3">Opponent</th>
+                <th class="py-2 pr-3">Format</th>
+                <th class="py-2 pr-3">Result</th>
+                <th class="py-2 pr-3">Score</th>
+                <th class="py-2 pr-3">Surface</th>
+                <th class="py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="matchBody" class="divide-y"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
 
+  <footer class="text-center text-xs text-gray-500 py-6">Data stays in your browser • Print to PDF for sharing</footer>
 
-        // --- Authentication ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                userId = user.uid;
-                setupFirestoreListeners();
-            } else {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    try {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } catch (error) {
-                        console.error("Custom token sign-in failed, trying anonymous:", error);
-                        await signInAnonymously(auth);
-                    }
-                } else {
-                    await signInAnonymously(auth);
-                }
-            }
-        });
+  <script>
+  // ---------- Storage ----------
+  const LS_KEY = 'tennis_simple_v1';
+  const defaultState = { eventName:'', eventVenue:'', theme:'default', players:['Helmi'], matches:[] };
+  let state = load();
+  function load(){ try { return JSON.parse(localStorage.getItem(LS_KEY)) || structuredClone(defaultState);} catch { return structuredClone(defaultState);} }
+  function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 
-        // --- Firestore ---
-        function setupFirestoreListeners() {
-            if (!userId) return;
+  // ---------- Elements ----------
+  const el = (id)=>document.getElementById(id);
+  const playerInput = el('playerInput');
+  const addPlayerBtn = el('addPlayer');
+  const playerList = el('playerList');
+  const mDate = el('mDate');
+  const mOpponent = el('mOpponent');
+  const mFormat = el('mFormat');
+  const mResult = el('mResult');
+  const mScore = el('mScore');
+  const mSurface = el('mSurface');
+  const addMatchBtn = el('addMatch');
+  const matchBody = el('matchBody');
+  const matchCount = el('matchCount');
+  const eventName = el('eventName');
+  const eventVenue = el('eventVenue');
+  const saveEvent = el('saveEvent');
+  const eventSaved = el('eventSaved');
 
-            if (unsubscribeMatches) unsubscribeMatches();
+  function init(){
+    // hydrate
+    document.documentElement.setAttribute('data-theme', state.theme||'default');
+    el('themePick').value = state.theme||'default';
+    eventName.value = state.eventName || '';
+    eventVenue.value = state.eventVenue || '';
+    if(state.players.length && !state.players.includes('Helmi')) state.players.unshift('Helmi');
+    mDate.value = new Date().toISOString().slice(0,10);
+    renderPlayers();
+    renderMatches();
+  }
 
-            const collectionPath = `artifacts/${appId}/users/${userId}/matches`;
-            matchesCollectionRef = collection(db, collectionPath);
-            const matchesQuery = query(matchesCollectionRef);
+  // ---------- Players ----------
+  function renderPlayers(){
+    playerList.innerHTML = '';
+    const names = [...state.players].sort((a,b)=>a.localeCompare(b));
+    // build opponent dropdown
+    const prev = mOpponent.value;
+    mOpponent.innerHTML = '';
+    for(const n of names){ mOpponent.append(new Option(n,n)); }
+    if(prev) mOpponent.value = prev;
 
-            unsubscribeMatches = onSnapshot(matchesQuery, (snapshot) => {
-                try {
-                    allMatches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                    // More robust sorting to prevent errors with invalid dates
-                    allMatches.sort((a, b) => {
-                        let dateA, dateB;
-                        try {
-                            dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date);
-                            if (isNaN(dateA.getTime())) dateA = new Date(0);
-                        } catch (e) {
-                            dateA = new Date(0);
-                        }
+    for(const n of names){
+      const li = document.createElement('li');
+      li.className = 'flex items-center justify-between rounded-lg px-3 py-2 hover:bg-gray-50';
+      li.innerHTML = `
+        <button class="text-left flex-1" data-set-opp="${escapeHtml(n)}">${escapeHtml(n)}</button>
+        <div class="flex gap-2">
+          <button class="btn text-xs" data-rename="${escapeHtml(n)}">Rename</button>
+          <button class="btn text-xs" data-remove="${escapeHtml(n)}">Remove</button>
+        </div>`;
+      playerList.appendChild(li);
+    }
+  }
 
-                        try {
-                            dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date);
-                            if (isNaN(dateB.getTime())) dateB = new Date(0);
-                        } catch (e) {
-                            dateB = new Date(0);
-                        }
+  addPlayerBtn.addEventListener('click', ()=>{
+    const name = (playerInput.value||'').trim(); if(!name) return;
+    if(!state.players.includes(name)) state.players.push(name);
+    playerInput.value=''; save(); renderPlayers();
+  });
 
-                        return dateB.getTime() - dateA.getTime();
-                    });
-                    
-                    renderMatches(allMatches);
-                    calculateAndRenderStats(allMatches);
-                    generateAndRenderWordCloud(allMatches);
+  playerList.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    if(btn.dataset.setOpp){ mOpponent.value = btn.dataset.setOpp; return; }
+    if(btn.dataset.rename){
+      const old = btn.dataset.rename; const neo = prompt('Rename player', old);
+      if(neo && neo.trim()){
+        state.players = state.players.map(p=> p===old? neo.trim(): p);
+        for(const m of state.matches){ if(m.opponent===old) m.opponent = neo.trim(); }
+        save(); renderPlayers(); renderMatches();
+      }
+    }
+    if(btn.dataset.remove){
+      const name = btn.dataset.remove;
+      state.players = state.players.filter(p=>p!==name);
+      save(); renderPlayers();
+    }
+  });
 
-                    const hasMatches = allMatches.length > 0;
-                    exportCsvBtn.disabled = !hasMatches;
-                    exportPdfBtn.disabled = !hasMatches;
-                } catch (error) {
-                     console.error("An error occurred while processing matches:", error);
-                } finally {
-                    // This block ensures the button is ALWAYS enabled, even if errors occur.
-                    addMatchBtn.disabled = false;
-                    addMatchBtn.textContent = 'Add Match';
-                }
+  // ---------- Event Info ----------
+  saveEvent.addEventListener('click', ()=>{
+    state.eventName = eventName.value.trim();
+    state.eventVenue = eventVenue.value.trim();
+    save(); eventSaved.classList.remove('hidden'); setTimeout(()=>eventSaved.classList.add('hidden'), 1200);
+  });
 
-            }, (error) => {
-                console.error("Error fetching matches: ", error);
-                addMatchBtn.disabled = false;
-                addMatchBtn.textContent = 'Add Match';
-            });
-        }
+  // ---------- Matches ----------
+  function fmtFormat(n){ return n==1? '1 set' : (n==3? 'Bo3' : 'Bo5'); }
+  function parseScore(raw){
+    return raw.split(';').map(s=>s.trim()).filter(Boolean).map(s=>{
+      const m = s.match(/(\d+)\s*[-–]\s*(\d+)/); return m ? [ +m[1], +m[2] ] : null;
+    }).filter(Boolean);
+  }
 
-        // --- Statistics Calculation ---
-        function calculateAndRenderStats(matches) {
-            let wins = 0;
-            let losses = 0;
-            let totalMySetsWon = 0;
-            let totalOpponentSetsWon = 0;
+  function addMatch(){
+    const m = {
+      id: crypto.randomUUID(),
+      date: mDate.value || new Date().toISOString().slice(0,10),
+      opponent: mOpponent.value || '',
+      format: +mFormat.value,
+      result: mResult.value,
+      score: mScore.value.trim(),
+      surface: mSurface.value
+    };
+    if(!m.opponent){ alert('Pick an opponent'); return; }
+    state.matches.push(m); save();
+    el('savedMsg').classList.remove('hidden'); setTimeout(()=>el('savedMsg').classList.add('hidden'), 1200);
+    mScore.value=''; renderMatches(); renderLeague();
+  }
+  addMatchBtn.addEventListener('click', addMatch);
 
-            if (matches.length === 0) {
-                winLossRecordEl.textContent = '0 - 0';
-                setPercentageEl.textContent = '0%';
-                return;
-            }
+  function renderMatches(){
+    const rows = [];
+    const data = [...state.matches].sort((a,b)=> a.date < b.date ? 1 : -1);
+    matchCount.textContent = data.length;
+    for(const m of data){
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-gray-50';
+      tr.innerHTML = `
+        <td class="py-2 pr-3 whitespace-nowrap">${escapeHtml(m.date)}</td>
+        <td class="py-2 pr-3">${escapeHtml(m.opponent)}</td>
+        <td class="py-2 pr-3">${fmtFormat(m.format)}</td>
+        <td class="py-2 pr-3">${m.result==='W' ? '<span class=\'text-green-700\'>W</span>' : '<span class=\'text-red-700\'>L</span>'}</td>
+        <td class="py-2 pr-3">${escapeHtml(m.score)}</td>
+        <td class="py-2 pr-3">${escapeHtml(m.surface)}</td>
+        <td class="py-2 flex gap-2">
+          <button class="btn text-xs" data-edit="${m.id}">Edit</button>
+          <button class="btn text-xs" data-del="${m.id}">Delete</button>
+        </td>`;
+      rows.push(tr);
+    }
+    matchBody.replaceChildren(...rows);
+  }
 
-            matches.forEach(match => {
-                if (match.result === 'win') {
-                    wins++;
-                } else {
-                    losses++;
-                }
+  matchBody.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    const id = btn.dataset.edit || btn.dataset.del; const idx = state.matches.findIndex(x=>x.id===id);
+    if(idx<0) return;
+    if(btn.dataset.del){ if(confirm('Delete this match?')){ state.matches.splice(idx,1); save(); renderMatches(); renderLeague(); } return; }
+    if(btn.dataset.edit){
+      const m = state.matches[idx];
+      const raw = prompt('Edit (date,opponent,format,result,score,surface)', `${m.date},${m.opponent},${m.format},${m.result},${m.score},${m.surface}`);
+      if(raw){
+        const p = raw.split(','); if(p.length>=6){ [m.date,m.opponent,m.format,m.result,m.score,m.surface] = [p[0],p[1],+p[2],p[3],p[4],p[5]]; save(); renderMatches(); renderLeague(); }
+      }
+    }
+  });
 
-                if (match.score) {
-                    let setsWonByFirstNumber = 0;
-                    let setsWonBySecondNumber = 0;
-                    
-                    const sets = match.score.split(',');
-                    sets.forEach(set => {
-                        const scores = set.trim().split('-').map(s => parseInt(s, 10));
-                        if (scores.length === 2 && !isNaN(scores[0]) && !isNaN(scores[1])) {
-                            if (scores[0] > scores[1]) {
-                                setsWonByFirstNumber++;
-                            } else if (scores[1] > scores[0]) {
-                                setsWonBySecondNumber++;
-                            }
-                        }
-                    });
-                    const firstNumberWonMoreSets = setsWonByFirstNumber > setsWonBySecondNumber;
-                    const iAmTheWinner = match.result === 'win';
-                    if (firstNumberWonMoreSets === iAmTheWinner) {
-                        totalMySetsWon += setsWonByFirstNumber;
-                        totalOpponentSetsWon += setsWonBySecondNumber;
-                    } else {
-                        totalMySetsWon += setsWonBySecondNumber;
-                        totalOpponentSetsWon += setsWonByFirstNumber;
-                    }
-                }
-            });
+  // ---------- League ----------
+  function computeLeague(){
+    const table = new Map();
+    for(const p of state.players){ table.set(p,{P:0,W:0,L:0,pts:0}); }
+    for(const m of state.matches){
+      if(!table.has('Helmi')) table.set('Helmi',{P:0,W:0,L:0,pts:0});
+      if(!table.has(m.opponent)) table.set(m.opponent,{P:0,W:0,L:0,pts:0});
+      const H = table.get('Helmi'); const O = table.get(m.opponent);
+      H.P++; O.P++;
+      if(m.result==='W'){ H.W++; H.pts+=3; O.L++; } else { O.W++; O.pts+=3; H.L++; }
+    }
+    return [...table.entries()].map(([player,v])=>({player,...v})).sort((a,b)=> b.pts-a.pts || b.W-a.W || a.player.localeCompare(b.player));
+  }
+  function renderLeague(){
+    const body = el('leagueBody');
+    const rows = [];
+    for(const r of computeLeague()){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="py-2 pr-3 font-medium">${escapeHtml(r.player)}</td><td class="py-2 pr-3">${r.P}</td><td class="py-2 pr-3">${r.W}</td><td class="py-2 pr-3">${r.L}</td><td class="py-2 pr-3">${r.pts}</td>`;
+      rows.push(tr);
+    }
+    body.replaceChildren(...rows);
+  }
 
-            const totalMatches = wins + losses;
-            const winPercentage = totalMatches > 0 ? ((wins / totalMatches) * 100).toFixed(1) : 0;
+  // ---------- Import/Export & PDF ----------
+  el('btnExport').addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='tennis-data.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 400);
+  });
+  el('fileImport').addEventListener('change', (e)=>{
+    const f = e.target.files?.[0]; if(!f) return; const r = new FileReader(); r.onload = ()=>{ try { state = JSON.parse(r.result); save(); init(); renderLeague(); } catch { alert('Invalid JSON'); } }; r.readAsText(f); e.target.value='';
+  });
+  el('btnPDF').addEventListener('click', ()=> window.print());
+  // Theme
+  el('themePick').addEventListener('change', ()=>{ state.theme = el('themePick').value; save(); document.documentElement.setAttribute('data-theme', state.theme); });
+('click', ()=> window.print());
 
-            winLossRecordEl.innerHTML = `<span class="text-green-500">${wins}</span> - <span class="text-red-500">${losses}</span>`;
-            setPercentageEl.textContent = `${winPercentage}%`;
-        }
+  // ---------- Utils ----------
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, (c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
 
-        // --- Word Cloud Generation ---
-        function generateAndRenderWordCloud(matches) {
-            const stopWords = new Set(['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now']);
-            
-            const allNotes = matches
-                .map(match => match.notes || '')
-                .join(' ')
-                .toLowerCase()
-                .replace(/[^\w\s]/g, '')
-                .split(/\s+/);
-
-            const wordCounts = {};
-            allNotes.forEach(word => {
-                if (word && !stopWords.has(word)) {
-                    wordCounts[word] = (wordCounts[word] || 0) + 1;
-                }
-            });
-
-            const sortedWords = Object.entries(wordCounts).sort((a, b) => b[1] - a[1]).slice(0, 30);
-
-            wordCloudContainer.innerHTML = '';
-            
-            if (sortedWords.length === 0) {
-                 wordCloudContainer.appendChild(wordCloudPlaceholder);
-                 return;
-            }
-
-            const counts = sortedWords.map(entry => entry[1]);
-            const minCount = Math.min(...counts);
-            const maxCount = Math.max(...counts);
-
-            sortedWords.sort(() => Math.random() - 0.5);
-
-            sortedWords.forEach(([word, count]) => {
-                const wordSpan = document.createElement('span');
-                wordSpan.textContent = word;
-
-                const minFontSize = 14;
-                const maxFontSize = 36;
-                let fontSize = minFontSize;
-                if (maxCount > minCount) {
-                     fontSize = minFontSize + (maxFontSize - minFontSize) * ((count - minCount) / (maxCount - minCount));
-                } else if(sortedWords.length > 0) {
-                    fontSize = minFontSize + (maxFontSize - minFontSize) * 0.5;
-                }
-                
-                wordSpan.style.fontSize = `${fontSize}px`;
-                wordSpan.className = 'font-semibold text-indigo-600 opacity-80';
-                wordCloudContainer.appendChild(wordSpan);
-            });
-        }
-
-
-        // --- Rendering Logic ---
-        function renderMatches(matches) {
-            matchesTableBody.innerHTML = ''; 
-
-            if (matches.length === 0) {
-                matchesTableBody.innerHTML = `
-                    <tr class="bg-white">
-                        <td colspan="6" class="text-center py-10 px-6">
-                            <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
-                            <h3 class="mt-2 text-lg font-medium text-slate-800">No matches yet</h3>
-                            <p class="mt-1 text-sm text-slate-500">Use the form above to add your first match!</p>
-                        </td>
-                    </tr>
-                `;
-            } else {
-                matches.forEach(match => {
-                    const matchRow = createMatchRow(match);
-                    matchesTableBody.appendChild(matchRow);
-                });
-            }
-        }
-
-        function createMatchRow(match) {
-            const row = document.createElement('tr');
-            row.className = 'bg-white border-b hover:bg-slate-50 transition-colors';
-
-            const resultText = match.result.charAt(0).toUpperCase() + match.result.slice(1);
-            const resultColorClass = match.result === 'win' ? 'text-green-800 bg-green-100' : 'text-red-800 bg-red-100';
-
-            const formatLabels = {
-                'single_set': 'Single Set',
-                'best_of_3': 'Best of 3',
-                'best_of_5': 'Best of 5'
-            };
-            const formatText = formatLabels[match.matchFormat] || 'N/A';
-            
-            let formattedDate = 'No Date';
-            if (match.date) {
-                try {
-                    const dateObj = match.date.toDate ? match.date.toDate() : new Date(match.date);
-                     if (isNaN(dateObj.getTime())) {
-                        formattedDate = 'Invalid Date';
-                    } else {
-                        formattedDate = dateObj.toLocaleString('en-US', {
-                            year: '2-digit', month: 'short', day: 'numeric'
-                        });
-                    }
-                } catch(e) {
-                    formattedDate = 'Error Date';
-                }
-            }
-
-
-            row.innerHTML = `
-                <td class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">${formattedDate}</td>
-                <td class="px-6 py-4">${match.opponent}</td>
-                <td class="px-6 py-4 text-slate-600">${formatText}</td>
-                <td class="px-6 py-4">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${resultColorClass}">
-                        ${resultText}
-                    </span>
-                </td>
-                <td class="px-6 py-4 font-mono text-slate-600">${match.score}</td>
-                <td class="px-6 py-4 text-right">
-                    <button data-id="${match.id}" class="delete-btn text-slate-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-100">
-                        <span class="sr-only">Delete</span>
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
-                </td>
-            `;
-
-            const deleteButton = row.querySelector('.delete-btn');
-            deleteButton.addEventListener('click', async () => {
-                const matchId = deleteButton.getAttribute('data-id');
-                try {
-                   await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/matches`, matchId));
-                } catch(error) {
-                    console.error("Error deleting match: ", error);
-                }
-            });
-
-            return row;
-        }
-
-
-        // --- Event Listeners ---
-        addMatchForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            if (!userId || !matchesCollectionRef) {
-                console.error("User not authenticated or Firestore not ready. Please wait and try again.");
-                return;
-            }
-            
-            addMatchBtn.disabled = true;
-            addMatchBtn.textContent = 'Saving...';
-            
-            const dateValue = document.getElementById('date').value;
-
-            const newMatch = {
-                opponent: document.getElementById('opponent').value,
-                date: dateValue ? new Date(dateValue) : new Date(),
-                score: document.getElementById('score').value,
-                result: document.getElementById('result').value,
-                matchFormat: document.getElementById('matchFormat').value,
-                notes: document.getElementById('notes').value,
-                createdAt: new Date()
-            };
-
-            try {
-                await addDoc(matchesCollectionRef, newMatch);
-                addMatchForm.reset();
-            } catch (error) {
-                console.error("Error adding document: ", error);
-                addMatchBtn.textContent = 'Save Failed';
-                addMatchBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
-                addMatchBtn.classList.add('bg-red-500');
-
-                setTimeout(() => {
-                    addMatchBtn.classList.remove('bg-red-500');
-                    addMatchBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
-                }, 2500);
-            } finally {
-                 addMatchBtn.disabled = false;
-                 addMatchBtn.textContent = 'Add Match';
-            }
-        });
-
-        // --- EXPORT FUNCTIONS ---
-        function exportToCSV() {
-            const headers = ['Date', 'Opponent', 'Format', 'Result', 'Score', 'Notes'];
-            const formatLabels = {'single_set': 'Single Set', 'best_of_3': 'Best of 3', 'best_of_5': 'Best of 5'};
-
-            const rows = allMatches.map(match => {
-                const dateObj = match.date?.toDate ? match.date.toDate() : new Date(match.date);
-                return [
-                    dateObj.toISOString().split('T')[0], // YYYY-MM-DD
-                    match.opponent,
-                    formatLabels[match.matchFormat] || 'N/A',
-                    match.result,
-                    match.score,
-                    `"${(match.notes || '').replace(/"/g, '""')}"`
-                ]
-            });
-
-            let csvContent = "data:text/csv;charset=utf-8," 
-                + headers.join(",") + "\n" 
-                + rows.map(e => e.join(",")).join("\n");
-            
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "helmis_tennis_matches.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function saveAsPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            const head = [['Date', 'Opponent', 'Format', 'Result', 'Score']];
-            const formatLabels = {'single_set': 'Single Set', 'best_of_3': 'Best of 3', 'best_of_5': 'Best of 5'};
-            const body = allMatches.map(match => {
-                const dateObj = match.date?.toDate ? match.date.toDate() : new Date(match.date);
-                return [
-                    dateObj.toISOString().split('T')[0], // YYYY-MM-DD
-                    match.opponent,
-                    formatLabels[match.matchFormat] || 'N/A',
-                    match.result.charAt(0).toUpperCase() + match.result.slice(1),
-                    match.score
-                ]
-            });
-
-            doc.autoTable({
-                head: head,
-                body: body,
-                didDrawPage: function (data) {
-                    doc.setFontSize(20);
-                    doc.text("Helmi's Tennis Matches", data.settings.margin.left, 15);
-                },
-                startY: 20
-            });
-
-            doc.save('helmis_tennis_matches.pdf');
-        }
-
-        exportCsvBtn.addEventListener('click', exportToCSV);
-        exportPdfBtn.addEventListener('click', saveAsPDF);
-
-    </script>
+  // ---------- Boot ----------
+  init();
+  renderLeague();
+  </script>
 </body>
 </html>
-
