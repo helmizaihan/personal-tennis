@@ -227,40 +227,43 @@
             const matchesQuery = query(matchesCollectionRef);
 
             unsubscribeMatches = onSnapshot(matchesQuery, (snapshot) => {
-                allMatches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                try {
+                    allMatches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 
-                // More robust sorting to prevent errors with invalid dates
-                allMatches.sort((a, b) => {
-                    let dateA, dateB;
-                    try {
-                        // Handle Firestore Timestamps or string dates
-                        dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date);
-                        // If date is invalid, use a fallback date
-                        if (isNaN(dateA.getTime())) dateA = new Date(0);
-                    } catch (e) {
-                        dateA = new Date(0); // Fallback for any parsing errors
-                    }
+                    // More robust sorting to prevent errors with invalid dates
+                    allMatches.sort((a, b) => {
+                        let dateA, dateB;
+                        try {
+                            dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+                            if (isNaN(dateA.getTime())) dateA = new Date(0);
+                        } catch (e) {
+                            dateA = new Date(0);
+                        }
 
-                    try {
-                        dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date);
-                        if (isNaN(dateB.getTime())) dateB = new Date(0);
-                    } catch (e) {
-                        dateB = new Date(0);
-                    }
+                        try {
+                            dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+                            if (isNaN(dateB.getTime())) dateB = new Date(0);
+                        } catch (e) {
+                            dateB = new Date(0);
+                        }
 
-                    return dateB.getTime() - dateA.getTime();
-                });
-                
-                renderMatches(allMatches);
-                calculateAndRenderStats(allMatches);
-                generateAndRenderWordCloud(allMatches);
+                        return dateB.getTime() - dateA.getTime();
+                    });
+                    
+                    renderMatches(allMatches);
+                    calculateAndRenderStats(allMatches);
+                    generateAndRenderWordCloud(allMatches);
 
-                const hasMatches = allMatches.length > 0;
-                exportCsvBtn.disabled = !hasMatches;
-                exportPdfBtn.disabled = !hasMatches;
-                
-                addMatchBtn.disabled = false;
-                addMatchBtn.textContent = 'Add Match';
+                    const hasMatches = allMatches.length > 0;
+                    exportCsvBtn.disabled = !hasMatches;
+                    exportPdfBtn.disabled = !hasMatches;
+                } catch (error) {
+                     console.error("An error occurred while processing matches:", error);
+                } finally {
+                    // This block ensures the button is ALWAYS enabled, even if errors occur.
+                    addMatchBtn.disabled = false;
+                    addMatchBtn.textContent = 'Add Match';
+                }
 
             }, (error) => {
                 console.error("Error fetching matches: ", error);
@@ -304,15 +307,8 @@
                             }
                         }
                     });
-
-                    // Determine winner based on sets counted from the score string
                     const firstNumberWonMoreSets = setsWonByFirstNumber > setsWonBySecondNumber;
-                    // Determine winner based on the user's selection in the form
                     const iAmTheWinner = match.result === 'win';
-
-                    // If the winner from the score (e.g., the first number won more sets) matches the
-                    // actual winner from the result dropdown, we can correctly assign the set counts.
-                    // This makes the order you enter scores irrelevant.
                     if (firstNumberWonMoreSets === iAmTheWinner) {
                         totalMySetsWon += setsWonByFirstNumber;
                         totalOpponentSetsWon += setsWonBySecondNumber;
@@ -423,11 +419,18 @@
             
             let formattedDate = 'No Date';
             if (match.date) {
-                // Handle both Firestore Timestamps (new) and date strings (old)
-                const dateObj = match.date.toDate ? match.date.toDate() : new Date(match.date + 'T00:00:00');
-                formattedDate = dateObj.toLocaleString('en-US', {
-                    year: '2-digit', month: 'short', day: 'numeric'
-                });
+                try {
+                    const dateObj = match.date.toDate ? match.date.toDate() : new Date(match.date);
+                     if (isNaN(dateObj.getTime())) {
+                        formattedDate = 'Invalid Date';
+                    } else {
+                        formattedDate = dateObj.toLocaleString('en-US', {
+                            year: '2-digit', month: 'short', day: 'numeric'
+                        });
+                    }
+                } catch(e) {
+                    formattedDate = 'Error Date';
+                }
             }
 
 
@@ -479,7 +482,7 @@
 
             const newMatch = {
                 opponent: document.getElementById('opponent').value,
-                date: dateValue ? new Date(dateValue + 'T00:00:00') : new Date(), // Store as JS Date object
+                date: dateValue ? new Date(dateValue) : new Date(),
                 score: document.getElementById('score').value,
                 result: document.getElementById('result').value,
                 matchFormat: document.getElementById('matchFormat').value,
@@ -490,8 +493,6 @@
             try {
                 await addDoc(matchesCollectionRef, newMatch);
                 addMatchForm.reset();
-                addMatchBtn.disabled = false;
-                addMatchBtn.textContent = 'Add Match';
             } catch (error) {
                 console.error("Error adding document: ", error);
                 addMatchBtn.textContent = 'Save Failed';
@@ -499,11 +500,12 @@
                 addMatchBtn.classList.add('bg-red-500');
 
                 setTimeout(() => {
-                    addMatchBtn.disabled = false;
-                    addMatchBtn.textContent = 'Add Match';
                     addMatchBtn.classList.remove('bg-red-500');
                     addMatchBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
                 }, 2500);
+            } finally {
+                 addMatchBtn.disabled = false;
+                 addMatchBtn.textContent = 'Add Match';
             }
         });
 
@@ -573,9 +575,4 @@
     </script>
 </body>
 </html>
-
-
-
-
-
 
