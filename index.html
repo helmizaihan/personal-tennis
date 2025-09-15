@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tennis Match Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> <!-- A fallback, will use inline SVG -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .form-input, .form-select {
+            transition: all 0.3s ease;
+        }
+        .match-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .match-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .win {
+            border-left: 5px solid #4ade80; /* green-400 */
+        }
+        .loss {
+            border-left: 5px solid #f87171; /* red-400 */
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-slate-900">Helmi’s Tennis Matches</h1>
+            <p class="text-slate-500 mt-2">Log your every serve, volley, and victory.</p>
+        </header>
+
+        <main>
+            <!-- Add Match Form -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
+                <h2 class="text-2xl font-semibold mb-4 text-slate-800">Add New Match</h2>
+                <form id="addMatchForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Opponent -->
+                    <div class="md:col-span-2">
+                        <label for="opponent" class="block text-sm font-medium text-slate-600 mb-1">Opponent</label>
+                        <input type="text" id="opponent" placeholder="e.g., Roger Federer" required class="form-input w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    </div>
+
+                    <!-- Date -->
+                    <div>
+                        <label for="date" class="block text-sm font-medium text-slate-600 mb-1">Date</label>
+                        <input type="date" id="date" required class="form-input w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    </div>
+
+                    <!-- Result -->
+                    <div>
+                        <label for="result" class="block text-sm font-medium text-slate-600 mb-1">Result</label>
+                        <select id="result" required class="form-select w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                            <option value="win">Win</option>
+                            <option value="loss">Loss</option>
+                        </select>
+                    </div>
+
+                    <!-- Score -->
+                    <div class="md:col-span-2">
+                         <label for="score" class="block text-sm font-medium text-slate-600 mb-1">Score</label>
+                        <input type="text" id="score" placeholder="e.g., 6-2, 7-5" required class="form-input w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="md:col-span-2">
+                        <label for="notes" class="block text-sm font-medium text-slate-600 mb-1">Notes</label>
+                        <textarea id="notes" rows="3" placeholder="e.g., Focused on my backhand slice..." class="form-input w-full px-4 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="md:col-span-2 text-right">
+                        <button type="submit" class="bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105">
+                            Add Match
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Matches List -->
+            <div>
+                <h2 class="text-2xl font-semibold mb-4 text-slate-800">Match History</h2>
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                    <table class="w-full text-sm text-left text-slate-500">
+                        <thead class="text-xs text-slate-700 uppercase bg-slate-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">Date</th>
+                                <th scope="col" class="px-6 py-3">Opponent</th>
+                                <th scope="col" class="px-6 py-3">Result</th>
+                                <th scope="col" class="px-6 py-3">Score</th>
+                                <th scope="col" class="px-6 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matchesTableBody">
+                            <!-- Match rows will be programmatically inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        // --- Firebase Imports ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Configuration ---
+        // These global variables are provided by the environment.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-tennis-app';
+        let firebaseConfig;
+        try {
+            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "DEMO", authDomain: "DEMO", projectId: "DEMO" };
+        } catch (e) {
+            console.error("Could not parse Firebase config:", e);
+            firebaseConfig = { apiKey: "DEMO", authDomain: "DEMO", projectId: "DEMO" };
+        }
+
+        // --- Firebase Initialization ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let userId = null;
+        let matchesCollectionRef = null;
+        let unsubscribeMatches = null; // To detach the listener when auth state changes
+
+        // --- UI Elements ---
+        const addMatchForm = document.getElementById('addMatchForm');
+        const matchesTableBody = document.getElementById('matchesTableBody');
+
+        // --- Authentication ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log("User is signed in with UID:", user.uid);
+                userId = user.uid;
+                setupFirestoreListeners();
+            } else {
+                console.log("User is signed out. Signing in...");
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    try {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                        console.log("Signed in with custom token.");
+                    } catch (error) {
+                        console.error("Custom token sign-in failed, trying anonymous:", error);
+                        await signInAnonymously(auth);
+                    }
+                } else {
+                    await signInAnonymously(auth);
+                    console.log("Signed in anonymously.");
+                }
+            }
+        });
+
+        // --- Firestore ---
+        function setupFirestoreListeners() {
+            if (!userId) return;
+
+            // Detach any existing listener
+            if (unsubscribeMatches) {
+                unsubscribeMatches();
+            }
+
+            const collectionPath = `artifacts/${appId}/users/${userId}/matches`;
+            matchesCollectionRef = collection(db, collectionPath);
+            const matchesQuery = query(matchesCollectionRef);
+
+            unsubscribeMatches = onSnapshot(matchesQuery, (snapshot) => {
+                const matches = [];
+                snapshot.forEach((doc) => {
+                    matches.push({ id: doc.id, ...doc.data() });
+                });
+                // Sort matches by date, newest first
+                matches.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderMatches(matches);
+            }, (error) => {
+                console.error("Error fetching matches: ", error);
+            });
+        }
+
+
+        // --- Rendering Logic ---
+        function renderMatches(matches) {
+            matchesTableBody.innerHTML = ''; // Clear the table body
+
+            if (matches.length === 0) {
+                matchesTableBody.innerHTML = `
+                    <tr class="bg-white">
+                        <td colspan="5" class="text-center py-10 px-6">
+                            <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                            <h3 class="mt-2 text-lg font-medium text-slate-800">No matches yet</h3>
+                            <p class="mt-1 text-sm text-slate-500">Use the form above to add your first match!</p>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                matches.forEach(match => {
+                    const matchRow = createMatchRow(match);
+                    matchesTableBody.appendChild(matchRow);
+                });
+            }
+        }
+
+        function createMatchRow(match) {
+            const row = document.createElement('tr');
+            row.className = 'bg-white border-b hover:bg-slate-50 transition-colors';
+
+            const resultText = match.result.charAt(0).toUpperCase() + match.result.slice(1);
+            const resultColorClass = match.result === 'win' ? 'text-green-800 bg-green-100' : 'text-red-800 bg-red-100';
+
+            const formattedDate = match.date ? new Date(match.date + 'T00:00:00').toLocaleDateString('en-US', {
+                year: '2-digit', month: 'short', day: 'numeric'
+            }) : 'No Date';
+
+            row.innerHTML = `
+                <td class="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">${formattedDate}</td>
+                <td class="px-6 py-4">${match.opponent}</td>
+                <td class="px-6 py-4">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${resultColorClass}">
+                        ${resultText}
+                    </span>
+                </td>
+                <td class="px-6 py-4 font-mono text-slate-600">${match.score}</td>
+                <td class="px-6 py-4 text-right">
+                    <button data-id="${match.id}" class="delete-btn text-slate-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-100">
+                        <span class="sr-only">Delete</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </td>
+            `;
+
+            // Add delete functionality
+            const deleteButton = row.querySelector('.delete-btn');
+            deleteButton.addEventListener('click', async () => {
+                const matchId = deleteButton.getAttribute('data-id');
+                // Removed confirm() as per instructions for iframe compatibility.
+                try {
+                   await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/matches`, matchId));
+                   console.log("Match deleted successfully");
+                } catch(error) {
+                    console.error("Error deleting match: ", error);
+                }
+            });
+
+            return row;
+        }
+
+
+        // --- Event Listeners ---
+        addMatchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!userId || !matchesCollectionRef) {
+                console.error("User not authenticated or Firestore not ready.");
+                // Optionally show an error message to the user
+                return;
+            }
+
+            const newMatch = {
+                opponent: document.getElementById('opponent').value,
+                date: document.getElementById('date').value,
+                score: document.getElementById('score').value,
+                result: document.getElementById('result').value,
+                notes: document.getElementById('notes').value,
+                createdAt: new Date()
+            };
+
+            try {
+                const docRef = await addDoc(matchesCollectionRef, newMatch);
+                console.log("Document written with ID: ", docRef.id);
+                addMatchForm.reset();
+            } catch (error) {
+                console.error("Error adding document: ", error);
+            }
+        });
+
+    </script>
+</body>
+</html>
+
